@@ -1,21 +1,41 @@
-import { StatusBar } from 'expo-status-bar';
-import React from 'react';
+
+import React, { useEffect , useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import {AsyncStorage} from 'react-native';
+import { NavigationContainer } from "@react-navigation/native";
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+
+import AuthScreen from './screens/AuthScreen';
+import MainScreen from './screens/MainScreen';
 
 export default function App() {
+  const [screen, setScreen] = useState(null);
+
+  useEffect(()=> {
+    const checkToken = async () => {
+      const token = await AsyncStorage.getItem("token");
+      if(token == null) {
+        setScreen(<AuthScreen />)
+      }else {
+        setScreen(<MainScreen />)
+      }
+    } 
+  })
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+      <SafeAreaProvider>
+        <SafeAreaView style={styles.container}>
+          {screen}
+        </SafeAreaView>
+      </SafeAreaProvider>
+    </NavigationContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  container : {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    backgroundColor: "red"
+  }
 });
