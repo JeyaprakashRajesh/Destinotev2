@@ -4,19 +4,21 @@ import GetStarted from "../components/GetStarted";
 import Phone from "../components/Phone";
 import Otp from "../components/Otp";
 
-const stack = createNativeStackNavigator()
+const Stack = createNativeStackNavigator();
 
-export default function AuthScreen() {
+export default function AuthScreen({ setScreen }) {
   return (
-    <stack.Navigator
-    initialRouteName="GetStarted"
-    screenOptions={{
-        headerShown : false,
-    }}
+    <Stack.Navigator
+      initialRouteName="GetStarted"
+      screenOptions={{
+        headerShown: false,
+      }}
     >
-      <stack.Screen name="GetStarted" component={GetStarted} />
-      <stack.Screen name="Phone" component={Phone} />
-      <stack.Screen name="Otp" component={Otp} />
-    </stack.Navigator>
+      <Stack.Screen name="GetStarted" component={GetStarted} />
+      <Stack.Screen name="Phone" component={Phone} />
+      <Stack.Screen name="Otp">
+        {(props) => <Otp {...props} setScreen={setScreen} />}
+      </Stack.Screen>
+    </Stack.Navigator>
   );
 }

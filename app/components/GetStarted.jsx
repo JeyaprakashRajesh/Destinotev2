@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,9 @@ import {
   Pressable,
   Dimensions,
   Platform,
+  Animated,
+  Easing,
+  TouchableOpacity,
 } from "react-native";
 import {
   primary,
@@ -19,46 +22,88 @@ import {
 
 const { height, width } = Dimensions.get("screen");
 
-export default function GetStarted({ navigation }) {
+const listData = [
+  {
+    image: require("../assets/pictures/getStartedLocation.png"),
+    title: "BUS TRACKING",
+    subTitle:
+      "Tracks all the available buses and shares live location feed to the user",
+  },
+  {
+    image: require("../assets/pictures/getStartedWallet.png"),
+    title: "WALLET",
+    subTitle: "A Wallet where the user can instantly pay any bus ticket",
+  },
+  {
+    image: require("../assets/pictures/getStartedPay.png"),
+    title: "TAP N PAY",
+    subTitle: "Use the Built-in NFC to Tap N Pay your bus fare.",
+  },
+];
+
+export default function GetStarted({ navigation  }) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const flatListRef = useRef(null);
+  const animations = useRef(listData.map(() => new Animated.Value(0))).current;
+
   const handleScroll = (event) => {
-    const scrollX = event.nativeEvent.contentOffset.x; // Get the horizontal scroll position
-    const index = Math.round(scrollX / width); // Calculate the current index
-    setCurrentIndex(index); // Update the current index state
+    const scrollX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(scrollX / width);
+    setCurrentIndex(index);
   };
+
+  const animateDots = (index) => {
+    animations.forEach((anim, i) => {
+      Animated.timing(anim, {
+        toValue: i === index ? 1 : 0,
+        duration: 300,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: false,
+      }).start();
+    });
+  };
+
+  useEffect(() => {
+    animateDots(currentIndex);
+  }, [currentIndex]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) =>
+        prevIndex === listData.length - 1 ? 0 : prevIndex + 1
+      );
+      flatListRef.current.scrollToIndex({
+        index: currentIndex === listData.length - 1 ? 0 : currentIndex + 1,
+        animated: true,
+      });
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [currentIndex]);
+
   const renderDots = () => {
     return (
       <View style={styles.dotsContainer}>
-        {listData.map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.dot,
-              { backgroundColor: currentIndex === index ? primary : thirtiary },
-            ]}
-          />
-        ))}
+        {listData.map((_, index) => {
+          const width = animations[index].interpolate({
+            inputRange: [0, 1],
+            outputRange: [height * 0.008, height * 0.018],
+          });
+          const backgroundColor = animations[index].interpolate({
+            inputRange: [0, 1],
+            outputRange: [thirtiary, primary],
+          });
+
+          return (
+            <Animated.View
+              key={index}
+              style={[styles.dot, { width, backgroundColor }]}
+            />
+          );
+        })}
       </View>
     );
   };
-  const listData = [
-    {
-      image: require("../assets/pictures/getStartedLocation.png"),
-      title: "BUS TRACKING",
-      subTitle:
-        "Tracks all the available buses and shares live location feed to the user",
-    },
-    {
-      image: require("../assets/pictures/getStartedWallet.png"),
-      title: "WALLET",
-      subTitle: "A Wallet where the user can instantly pay any bus ticket",
-    },
-    {
-      image: require("../assets/pictures/getStartedPay.png"),
-      title: "TAP N PAY",
-      subTitle: "Use the Built-in NFC to Tap N Pay your bus fare.",
-    },
-  ];
 
   const renderItem = ({ item }) => (
     <View style={styles.listItemContainer}>
@@ -110,10 +155,9 @@ export default function GetStarted({ navigation }) {
             to your <Text style={{ color: primary }}>Destination</Text>
           </Text>
         </View>
-        <View
-          style={[styles.listContainer]}
-        >
+        <View style={[styles.listContainer]}>
           <FlatList
+            ref={flatListRef}
             data={listData}
             renderItem={renderItem}
             horizontal
@@ -124,14 +168,13 @@ export default function GetStarted({ navigation }) {
             contentContainerStyle={{
               paddingVertical: 0,
             }}
-            
           />
-        <View>{renderDots()}</View>
+          <View>{renderDots()}</View>
         </View>
         <View style={styles.buttonContainer}>
-          <Pressable style={styles.button} onPress={handleGetStarted}>
+          <TouchableOpacity style={styles.button} onPress={handleGetStarted}>
             <Text style={styles.buttonText}>GET STARTED</Text>
-          </Pressable>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -215,8 +258,8 @@ const styles = StyleSheet.create({
     height: "80%",
     width: "80%",
     flexDirection: "row",
-    margin: 0, 
-    padding: 0, 
+    margin: 0,
+    padding: 0,
   },
   listRightSection: {
     width: "78%",
@@ -247,8 +290,8 @@ const styles = StyleSheet.create({
     marginTop: height * 0.01,
     justifyContent: "center",
     alignItems: "center",
-    flex : 1,
-    paddingBottom : Platform.OS === "ios" ? height * 0.02: 0
+    flex: 1,
+    paddingBottom: Platform.OS === "ios" ? height * 0.02 : 0,
   },
   button: {
     height: height * 0.07,
@@ -273,8 +316,7 @@ const styles = StyleSheet.create({
   },
   dot: {
     height: height * 0.008,
-    width: height * 0.008,
-    borderRadius: 5,
+    borderRadius: height * 0.004,
     marginHorizontal: 5,
   },
 });
