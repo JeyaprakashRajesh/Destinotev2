@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     alignItems: "center"
   },
   backContainer: {
-    marginTop: "20%",
+    marginTop: "10%",
     height: height * 0.05,
     width: width * 0.85
   },
@@ -107,9 +107,9 @@ const styles = StyleSheet.create({
   header: {
     width: width * 0.85,
     height: height * 0.08,
-    marginTop: height * 0.05,
+    marginTop: height * 0.025,
     flexDirection: "row",
-    alignItems: 'center'
+    alignItems: "center",
   },
   headerImageContainer: {
     aspectRatio: 1,
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   },
   headerContentText: {
     color: thirtiary,
-    fontFamily: "poppins-regular",
+    fontFamily: "Poppins-Regular",
     fontSize: width * 0.05,
   },
   phoneContainer: {
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     width: width * 0.85,
   },
   phoneLabel: {
-    fontFamily: "poppins-regular",
+    fontFamily: "Poppins-Regular",
     fontSize: width * 0.04,
     color: thirtiary,
     marginBottom: 5,
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     borderRadius: width * 0.03,
     fontSize: width * 0.035,
     color: thirtiary,
-    fontFamily: "poppins-regular",
+    fontFamily: "Poppins-Regular",
     backgroundColor: secondaryAcent,
     paddingLeft: width * 0.05
   },
@@ -195,8 +195,8 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: thirtiary,
-    fontFamily: "josefinsans-semibold",
+    fontFamily: "JosefinSans-SemiBold",
     marginBottom: Platform.OS === "ios" ? 0 : height * 0.005,
-    fontSize: width * 0.04,
+    fontSize: width * 0.05,
   }
 });

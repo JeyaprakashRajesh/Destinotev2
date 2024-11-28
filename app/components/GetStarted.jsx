@@ -19,8 +19,10 @@ import {
   secondaryAcent,
   thirtiary,
 } from "../utilities/color";
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 const { height, width } = Dimensions.get("screen");
+
 
 const listData = [
   {
@@ -75,11 +77,12 @@ export default function GetStarted({ navigation  }) {
       flatListRef.current.scrollToIndex({
         index: currentIndex === listData.length - 1 ? 0 : currentIndex + 1,
         animated: true,
+        
       });
-    }, 2000);
+    }, 2500);
 
     return () => clearInterval(interval);
-  }, [currentIndex]);
+  }, [currentIndex]); 
 
   const renderDots = () => {
     return (
