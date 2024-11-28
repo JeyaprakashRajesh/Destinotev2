@@ -1,26 +1,27 @@
-
-import React, { useEffect , useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import {AsyncStorage} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Ensure you're importing AsyncStorage correctly
 import { NavigationContainer } from "@react-navigation/native";
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
+
 import AuthScreen from './screens/AuthScreen';
 import MainScreen from './screens/MainScreen';
-
 export default function App() {
   const [screen, setScreen] = useState(null);
 
-  useEffect(()=> {
+  useEffect(() => {
     const checkToken = async () => {
       const token = await AsyncStorage.getItem("token");
-      if(token == null) {
-        setScreen(<AuthScreen />)
-      }else {
-        setScreen(<MainScreen />)
+      if (token == null) {
+        setScreen(<AuthScreen />);
+      } else {
+        setScreen(<MainScreen />);
       }
-    } 
-  })
+    };
+
+    checkToken();
+  }, []); 
 
   return (
     <NavigationContainer>
@@ -34,8 +35,8 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container : {
+  container: {
     flex: 1,
-    backgroundColor: "red"
+    backgroundColor: "#222831"
   }
 });
