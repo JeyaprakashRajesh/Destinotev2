@@ -4,7 +4,7 @@ export default function Map() {
     return(
         <View>
             <Text>
-                Map Page
+                adw
             </Text>
         </View>
     )

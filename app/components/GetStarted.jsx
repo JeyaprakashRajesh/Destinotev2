@@ -6,7 +6,6 @@ import {
   StyleSheet,
   FlatList,
   Image,
-  Pressable,
   Dimensions,
   Platform,
   Animated,
@@ -19,7 +18,6 @@ import {
   secondaryAcent,
   thirtiary,
 } from "../utilities/color";
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 const { height, width } = Dimensions.get("screen");
 
