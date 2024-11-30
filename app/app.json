@@ -4,7 +4,16 @@
     "slug": "app",
     "version": "1.0.0",
     "android": {
-      "package": "com.anonymous.app"
+      "package": "com.anonymous.app",
+      "permissions": [
+        "ACCESS_FINE_LOCATION"
+      ]
+    },
+    "ios": {
+      "bundleIdentifier": "com.anonymous.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "We need your location to show you on the map."
+      }
     }
   }
 }

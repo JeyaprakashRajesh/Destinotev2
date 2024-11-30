@@ -46,7 +46,7 @@ export default function MainScreen() {
                   width: width * 0.3,
                   alignItems: "center",
                   justifyContent: "center",
-                  marginTop: height * 0.05,
+                  marginTop: focused ? height * 0.06 : height * 0.055,
                 }}
               >
                 <Image
@@ -84,7 +84,7 @@ export default function MainScreen() {
                   width: width * 0.3,
                   alignItems: "center",
                   justifyContent: "center",
-                  marginTop: height * 0.05,
+                  marginTop: focused ? height * 0.06 : height * 0.055,
                 }}
               >
                 <Image
@@ -122,7 +122,7 @@ export default function MainScreen() {
                   width: width * 0.3,
                   alignItems: "center",
                   justifyContent: "center",
-                  marginTop: height * 0.05,
+                  marginTop: focused ? height * 0.06 : height * 0.055,
                 }}
               >
                 <Image
