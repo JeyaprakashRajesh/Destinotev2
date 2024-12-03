@@ -184,7 +184,7 @@ export default function Map() {
           />
         </TouchableOpacity>
       </View>
-      <View style={styles.weatherContainer}>
+      <View style={styles.walletContainer}>
 
       </View>
     </View>
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   rightButtonImg : {
     height : '50%',
   },
-  weatherContainer : {
+  walletContainer : {
     height : height * 0.06,
     width : width * 0.1,
     position : "absolute",
