@@ -5,6 +5,7 @@ export default function useCustomFonts() {
     'Poppins-Light': require('../assets/fonts/Poppins-Light.ttf'),
     'Poppins-Regular': require('../assets/fonts/Poppins-Regular.ttf'),
     'Poppins-Bold': require('../assets/fonts/Poppins-Bold.ttf'),
+    'JosefinSans-SemiBold' : require("../assets/fonts/JosefinSans-SemiBold.ttf"),
   });
 
   return fontsLoaded;

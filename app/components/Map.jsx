@@ -14,6 +14,7 @@ import * as Location from "expo-location";
 import useCustomFonts from "../utilities/loadFonts.js";
 
 import { primary, secondary, thirtiary } from "../utilities/color";
+import Wallet from "./wallet.jsx";
 
 const { height, width } = Dimensions.get("screen");
 
@@ -22,7 +23,8 @@ export default function Map() {
   const [errorMsg, setErrorMsg] = useState(null);
   const [loading, setLoading] = useState(true);
   const [pinLocation, setPinLocation] = useState(true);
-  const [isSatellite , setIsSatellite] = useState(false)
+  const [isSatellite , setIsSatellite] = useState(false);
+  const [amount , setAmount] = useState(1200)
   const mapRef = useRef();
 
   const fontsLoaded = useCustomFonts();
@@ -119,7 +121,7 @@ export default function Map() {
           style={styles.map}
           initialRegion={region}
           showsUserLocation={true}
-          followsUserLocation={true}
+          followsUserLocation={pinLocation ? true : false}
           onPanDrag={handleRegionChange}
           showsMyLocationButton={false}
           customMapStyle={customMapStyle}
@@ -185,7 +187,7 @@ export default function Map() {
         </TouchableOpacity>
       </View>
       <View style={styles.walletContainer}>
-
+          <Wallet amount={amount}/>
       </View>
     </View>
   );
@@ -297,11 +299,8 @@ const styles = StyleSheet.create({
     height : '50%',
   },
   walletContainer : {
-    height : height * 0.06,
-    width : width * 0.1,
     position : "absolute",
-    bottom : height * 0.05,
+    bottom : height * 0.015,
     left : width * 0.05,
-    backgroundColor : 'white'
   }
 });
