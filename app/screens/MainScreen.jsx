@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -17,11 +18,12 @@ const Tab = createBottomTabNavigator();
 const { height, width } = Dimensions.get("screen");
 
 export default function MainScreen() {
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="white" />
       <Tab.Navigator
-        initialRouteName="Home"
+        initialRouteName="Pay"
         screenOptions={{
           tabBarShowLabel: false,
           headerShown: false,
@@ -30,7 +32,9 @@ export default function MainScreen() {
           },
           tabBarButton: (props) => (
             <TouchableWithoutFeedback {...props}>
-              <View style={{ flex: 1 , alignItems : "center"   }}>{props.children}</View>
+              <View style={{ flex: 1, alignItems: "center" }}>
+                {props.children}
+              </View>
             </TouchableWithoutFeedback>
           ),
         }}
@@ -111,6 +115,7 @@ export default function MainScreen() {
             ),
           }}
         />
+
         <Tab.Screen
           name="Ticket"
           component={Ticket}
