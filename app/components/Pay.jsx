@@ -20,6 +20,7 @@ import { useRoute } from "@react-navigation/native";
 const { height, width } = Dimensions.get("screen");
 export default function Pay() {
   const [balance, setBalance] = useState(1200);
+  const [monthlyOutflow, setMonthlyOutflow] = useState(1260);
 
   const [nfc, setNfc] = useState(true);
   return (
@@ -28,7 +29,7 @@ export default function Pay() {
         <TouchableOpacity
           style={styles.payImageContainer}
           onPress={() => setNfc(!nfc)}
-        > 
+        >
           <Image
             source={require("../assets/pictures/tap_to_pay.png")}
             style={[
@@ -62,7 +63,10 @@ export default function Pay() {
             <TouchableOpacity style={styles.walletChildElement}>
               <Image
                 source={require("../assets/pictures/pay_scan.png")}
-                style={[styles.walletChildRightBottomElementImage ,{width : "50%"}]}
+                style={[
+                  styles.walletChildRightBottomElementImage,
+                  { width: "50%" },
+                ]}
               />
             </TouchableOpacity>
           </View>
@@ -75,7 +79,7 @@ export default function Pay() {
             </TouchableOpacity>
             <TouchableOpacity style={styles.walletChildElement}>
               <Image
-                source={require("../assets/pictures/pay_add_amount.png")}
+                source={require("../assets/pictures/pay_customerSupport.png")}
                 style={styles.walletChildRightBottomElementImage}
               />
             </TouchableOpacity>
@@ -83,7 +87,42 @@ export default function Pay() {
         </View>
       </View>
       <View style={styles.bottomContainer}>
-        <View style={styles.bottomInnerContainer}></View>
+        <View style={styles.bottomMonthySpendingContainer}>
+          <View style={styles.bottomMonthySpendingTextContainer}>
+            <Text style={styles.bottomMonthySpendingText}>Monthly outflow</Text>
+            <Image
+              source={require("../assets/pictures/pay_stats.png")}
+              resizeMode="contain"
+              style={styles.bottomMonthySpendingImage}
+            />
+          </View>
+          <View style={styles.bottomMonthySpendingContentContainer}>
+            <Text style={styles.bottomMonthySpendingContentText}>
+              Rs. {monthlyOutflow}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.bottomBottomContainer}>
+          <View style={styles.bottomBottomInnerContainer}>
+            <View style={styles.bottomBottomInnerContainerContent}>
+              <Image 
+                style={styles.bottomBottomInnerContainerContentImage}
+                resizeMode="contain"
+                source={require("../assets/pictures/pay_distance.png")}
+              />
+              <Text style={styles.bottomBottomInnerContainerContentText}>14 KM</Text>
+            </View>
+            <View style={styles.bottomBottomInnerContainerTextContainer}>
+              <Text style={styles.bottomBottomInnerContainerText}>Monthly travel distance</Text>
+            </View>
+          </View>
+          <View style={styles.bottomBottomInnerContainer}>
+            <View style={styles.bottomBottomInnerContainerContent}></View>
+            <View style={styles.bottomBottomInnerContainerTextContainer}>
+              <Text style={styles.bottomBottomInnerContainerText}>Carbon Dioxide Level</Text>
+            </View>
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -144,7 +183,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-evenly",
   },
   walletBalanceImage: {
-    height: "50%", 
+    height: "50%",
     aspectRatio: 1,
   },
   walletBalanceText: {
@@ -198,14 +237,82 @@ const styles = StyleSheet.create({
     width: "100%",
     flex: 1,
     alignItems: "center",
-    justifyContent: "flex-start",
+    justifyContent: "space-between",
     flexDirection: "column",
   },
-  bottomInnerContainer: {
-    height: "90%",
+  bottomMonthySpendingContainer: {
+    height: "30%",
     width: "90%",
-    backgroundColor: "white",
-    flexDirection: "column",
-    alignItems: "",
+    backgroundColor: secondary,
+    borderRadius: width * 0.05,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
+  bottomMonthySpendingTextContainer: {
+    marginLeft: "5%",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  bottomMonthySpendingText: {
+    color: thirtiary,
+    fontFamily: "Poppins-SemiBold",
+    fontSize: width * 0.04,
+  },
+  bottomMonthySpendingImage: {
+    width: "13%",
+    aspectRatio: 1,
+    marginLeft: width * 0.03,
+    marginBottom: width * 0.03,
+  },
+  bottomMonthySpendingContentContainer: {
+    marginRight: width * 0.03,
+  },
+  bottomMonthySpendingContentText: {
+    color: "#D59F0A",
+    fontFamily: "Poppins-SemiBold",
+    fontSize: width * 0.045,
+  },
+  bottomBottomContainer: {
+    height: "65%",
+    width: "90%",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    flexDirection: "row",
+  },
+  bottomBottomInnerContainer: {
+    height: "95%",
+    width: "47.5%",
+    backgroundColor: secondary,
+    borderRadius: width * 0.05,
+  },
+  bottomBottomInnerContainerContent: {
+    height: "70%",
+    width: "100%",
+    alignItems : "center",
+    justifyContent : "center",
+    flexDirection : "row"
+  },
+  bottomBottomInnerContainerTextContainer: {
+    height: "30%",
+    width: "100%",
+    alignItems : "center",
+    justifyContent : "center"
+  },
+  bottomBottomInnerContainerText : {
+    width : "90%",
+    textAlign : "center",
+    color: thirtiary,
+    fontFamily: "Poppins-SemiBold",
+    fontSize: width * 0.04,
+  },
+  bottomBottomInnerContainerContentImage : {
+    width : "20%",
+    aspectRatio : 1,
+  },
+  bottomBottomInnerContainerContentText : {
+    color: thirtiary,
+    fontFamily: "Poppins-SemiBold",
+    fontSize: width * 0.04,
+  }
 });
