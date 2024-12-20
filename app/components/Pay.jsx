@@ -5,6 +5,8 @@ import {
   Dimensions,
   Image,
   TouchableOpacity,
+  Pressable,
+  Platform,
 } from "react-native";
 import {
   primary,
@@ -26,7 +28,7 @@ export default function Pay() {
         <TouchableOpacity
           style={styles.payImageContainer}
           onPress={() => setNfc(!nfc)}
-        >
+        > 
           <Image
             source={require("../assets/pictures/tap_to_pay.png")}
             style={[
@@ -38,14 +40,8 @@ export default function Pay() {
         </TouchableOpacity>
 
         <Text style={styles.payText}>{!nfc ? "Turn On NFC" : " "}</Text>
-        <TouchableOpacity style={styles.payQr}>
-          <Image
-            source={require("../assets/pictures/pay_scan.png")}
-            resizeMethod="contain"
-            style={styles.payQrImg}
-          />
-        </TouchableOpacity>
       </View>
+
       <View style={styles.walletContainer}>
         <View style={styles.walletChildContainer}>
           <Image
@@ -56,13 +52,38 @@ export default function Pay() {
           <Text style={styles.walletBalanceContent}> Rs. {balance}</Text>
         </View>
         <View style={styles.walletChildRightContainer}>
-          <View style={styles.walletChildRightTop} >
-
+          <View style={styles.walletChildRightTopContainer}>
+            <TouchableOpacity style={styles.walletChildElement}>
+              <Image
+                source={require("../assets/pictures/pay_add_amount.png")}
+                style={styles.walletChildRightBottomElementImage}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.walletChildElement}>
+              <Image
+                source={require("../assets/pictures/pay_scan.png")}
+                style={[styles.walletChildRightBottomElementImage ,{width : "50%"}]}
+              />
+            </TouchableOpacity>
           </View>
           <View style={styles.walletChildRightBottomContainer}>
-
+            <TouchableOpacity style={styles.walletChildElement}>
+              <Image
+                source={require("../assets/pictures/pay_transaction.png")}
+                style={styles.walletChildRightBottomElementImage}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.walletChildElement}>
+              <Image
+                source={require("../assets/pictures/pay_add_amount.png")}
+                style={styles.walletChildRightBottomElementImage}
+              />
+            </TouchableOpacity>
           </View>
         </View>
+      </View>
+      <View style={styles.bottomContainer}>
+        <View style={styles.bottomInnerContainer}></View>
       </View>
     </View>
   );
@@ -75,16 +96,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   pay: {
-    height: height * 0.4,
+    height: height * 0.3,
     width: "100%",
     alignItems: "center",
     justifyContent: "center",
   },
   payImageContainer: {
-    height: "40%",
+    height: "55%",
     width: "100%",
     alignItems: "center",
     justifyContent: "center",
+    marginTop: height * 0.05,
   },
   payImage: {
     height: "100%",
@@ -95,25 +117,9 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins-SemiBold",
     fontSize: width * 0.04,
   },
-  payQr: {
-    width: "14%",
-    aspectRatio: 1,
-    position: "absolute",
-    bottom: 20,
-    right: 20,
-    backgroundColor: secondary,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 100,
-  },
-  payQrImg: {
-    height: "50%",
-    aspectRatio: 1,
-    tintColor: thirtiary,
-    opacity: 0.7,
-  },
+
   walletContainer: {
-    height: height * 0.25,
+    height: height * 0.23,
     width: "100%",
     flexDirection: "row",
     alignItems: "center",
@@ -135,10 +141,10 @@ const styles = StyleSheet.create({
     position: "relative",
     flexDirection: "column",
     alignItems: "center",
-    justifyContent : "space-evenly"
+    justifyContent: "space-evenly",
   },
   walletBalanceImage: {
-    height: "50%",
+    height: "50%", 
     aspectRatio: 1,
   },
   walletBalanceText: {
@@ -151,15 +157,55 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins-SemiBold",
     fontSize: width * 0.045,
   },
-  walletChildRightTop : {
-    height : "50%",
-    width : "100%",
-    backgroundColor : primary
+  walletChildRightTopContainer: {
+    height: "50%",
+    width: "100%",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    flexDirection: "row",
   },
-  walletChildRightBottomContainer : {
-    height : "50%",
-    width : "100%",
-    backgroundColor : secondary
-  }
-  
+  walletChildRightBottomContainer: {
+    height: "50%",
+    width: "100%",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    flexDirection: "row",
+  },
+  walletChildElement: {
+    height: "90%",
+    aspectRatio: 1,
+    backgroundColor: secondary,
+    borderRadius: width * 0.05,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+  },
+  walletChildRightBottomElement: {
+    height: "90%",
+    width: "100%",
+    borderRadius: height * 0.02,
+    backgroundColor: secondary,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+  },
+  walletChildRightBottomElementImage: {
+    width: "50%",
+    aspectRatio: 1,
+    resizeMode: "contain",
+  },
+  bottomContainer: {
+    width: "100%",
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "flex-start",
+    flexDirection: "column",
+  },
+  bottomInnerContainer: {
+    height: "90%",
+    width: "90%",
+    backgroundColor: "white",
+    flexDirection: "column",
+    alignItems: "",
+  },
 });
