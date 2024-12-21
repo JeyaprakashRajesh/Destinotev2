@@ -12,23 +12,25 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Home from "../components/Home";
 import Pay from "../components/Pay";
 import Ticket from "../components/Ticket";
-import { primary, secondary } from "../utilities/color";
+import { primary, secondary, thirtiary } from "../utilities/color";
 
 const Tab = createBottomTabNavigator();
 const { height, width } = Dimensions.get("screen");
 
 export default function MainScreen() {
+  const [route, setRoute] = useState("Pay");
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="white" />
       <Tab.Navigator
         initialRouteName="Pay"
-        screenOptions={{
+        screenOptions={({ route }) => ({
           tabBarShowLabel: false,
           headerShown: false,
           tabBarStyle: {
             height: height * 0.08,
+            backgroundColor: route.name === "Pay" ? secondary : "white",
           },
           tabBarButton: (props) => (
             <TouchableWithoutFeedback {...props}>
@@ -37,6 +39,12 @@ export default function MainScreen() {
               </View>
             </TouchableWithoutFeedback>
           ),
+        })}
+        screenListeners={{
+          state: (e) => {
+            const currentRoute = e.data.state.routes[e.data.state.index].name;
+            setRoute(currentRoute); // Update the route state on route change
+          },
         }}
       >
         <Tab.Screen
@@ -58,7 +66,7 @@ export default function MainScreen() {
                   style={{
                     height: "35%",
                     aspectRatio: 1,
-                    tintColor: focused ? primary : secondary,
+                    tintColor: focused ? primary : route === "Pay" ? thirtiary : secondary,
                   }}
                   resizeMode="contain"
                 />
@@ -96,14 +104,14 @@ export default function MainScreen() {
                   style={{
                     height: "35%",
                     aspectRatio: 1,
-                    tintColor: focused ? primary : secondary,
+                    tintColor: focused ? primary : route === "Pay" ? thirtiary : secondary,
                   }}
                   resizeMode="contain"
                 />
                 {focused ? (
                   <Text
                     style={{
-                      color: secondary,
+                      color: thirtiary,
                       fontFamily: "Poppins-Light",
                       fontSize: height * 0.013,
                     }}
@@ -135,7 +143,7 @@ export default function MainScreen() {
                   style={{
                     height: "35%",
                     aspectRatio: 1,
-                    tintColor: focused ? primary : secondary,
+                    tintColor: focused ? primary : route === "Pay" ? thirtiary : secondary,
                   }}
                   resizeMode="contain"
                 />

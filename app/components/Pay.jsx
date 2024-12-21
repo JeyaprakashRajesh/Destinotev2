@@ -56,31 +56,30 @@ export default function Pay() {
           <View style={styles.walletChildRightTopContainer}>
             <TouchableOpacity style={styles.walletChildElement}>
               <Image
-                source={require("../assets/pictures/pay_add_amount.png")}
+                source={require("../assets/pictures/wallet.png")}
                 style={styles.walletChildRightBottomElementImage}
               />
             </TouchableOpacity>
             <TouchableOpacity style={styles.walletChildElement}>
               <Image
-                source={require("../assets/pictures/pay_scan.png")}
-                style={[
-                  styles.walletChildRightBottomElementImage,
-                  { width: "50%" },
-                ]}
+                source={require("../assets/pictures/transaction.png")}
+                style={styles.walletChildRightBottomElementImage}
               />
             </TouchableOpacity>
           </View>
           <View style={styles.walletChildRightBottomContainer}>
             <TouchableOpacity style={styles.walletChildElement}>
-              <Image
-                source={require("../assets/pictures/pay_transaction.png")}
-                style={styles.walletChildRightBottomElementImage}
+            <Image
+                source={require("../assets/pictures/headset.png")}
+                style={[
+                  styles.walletChildRightBottomElementImage,
+                ]}
               />
             </TouchableOpacity>
             <TouchableOpacity style={styles.walletChildElement}>
               <Image
-                source={require("../assets/pictures/pay_customerSupport.png")}
-                style={styles.walletChildRightBottomElementImage}
+                source={require("../assets/pictures/qr-code.png")}
+                style={[styles.walletChildRightBottomElementImage]}
               />
             </TouchableOpacity>
           </View>
@@ -91,7 +90,7 @@ export default function Pay() {
           <View style={styles.bottomMonthySpendingTextContainer}>
             <Text style={styles.bottomMonthySpendingText}>Monthly outflow</Text>
             <Image
-              source={require("../assets/pictures/pay_stats.png")}
+              source={require("../assets/pictures/line-chart.png")}
               resizeMode="contain"
               style={styles.bottomMonthySpendingImage}
             />
@@ -105,21 +104,36 @@ export default function Pay() {
         <View style={styles.bottomBottomContainer}>
           <View style={styles.bottomBottomInnerContainer}>
             <View style={styles.bottomBottomInnerContainerContent}>
-              <Image 
+              <Image
                 style={styles.bottomBottomInnerContainerContentImage}
                 resizeMode="contain"
                 source={require("../assets/pictures/pay_distance.png")}
               />
-              <Text style={styles.bottomBottomInnerContainerContentText}>14 KM</Text>
+              <Text style={styles.bottomBottomInnerContainerContentText}>
+                14 KM
+              </Text>
             </View>
             <View style={styles.bottomBottomInnerContainerTextContainer}>
-              <Text style={styles.bottomBottomInnerContainerText}>Monthly travel distance</Text>
+              <Text style={styles.bottomBottomInnerContainerText}>
+                Monthly travel
+              </Text>
             </View>
           </View>
           <View style={styles.bottomBottomInnerContainer}>
-            <View style={styles.bottomBottomInnerContainerContent}></View>
+            <View style={styles.bottomBottomInnerContainerContent}>
+            <Image
+                style={styles.bottomBottomInnerContainerContentImage}
+                resizeMode="contain"
+                source={require("../assets/pictures/co2.png")}
+              />
+              <Text style={styles.bottomBottomInnerContainerContentText}>
+                420 PPM
+              </Text>
+            </View>
             <View style={styles.bottomBottomInnerContainerTextContainer}>
-              <Text style={styles.bottomBottomInnerContainerText}>Carbon Dioxide Level</Text>
+              <Text style={styles.bottomBottomInnerContainerText}>
+                C02 LEVEL
+              </Text>
             </View>
           </View>
         </View>
@@ -229,7 +243,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   walletChildRightBottomElementImage: {
-    width: "50%",
+    width: "42%",
     aspectRatio: 1,
     resizeMode: "contain",
   },
@@ -260,13 +274,12 @@ const styles = StyleSheet.create({
     fontSize: width * 0.04,
   },
   bottomMonthySpendingImage: {
-    width: "13%",
+    width: "17%",
     aspectRatio: 1,
     marginLeft: width * 0.03,
-    marginBottom: width * 0.03,
   },
   bottomMonthySpendingContentContainer: {
-    marginRight: width * 0.03,
+    marginRight: width * 0.05,
   },
   bottomMonthySpendingContentText: {
     color: "#D59F0A",
@@ -287,32 +300,37 @@ const styles = StyleSheet.create({
     borderRadius: width * 0.05,
   },
   bottomBottomInnerContainerContent: {
-    height: "70%",
+    height: "60%",
     width: "100%",
-    alignItems : "center",
-    justifyContent : "center",
-    flexDirection : "row"
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "column",
+    marginTop: "10%",
   },
   bottomBottomInnerContainerTextContainer: {
-    height: "30%",
+    height: "25%",
     width: "100%",
-    alignItems : "center",
-    justifyContent : "center"
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: "5%",
   },
-  bottomBottomInnerContainerText : {
-    width : "90%",
-    textAlign : "center",
+  bottomBottomInnerContainerText: {
+    width: "90%",
+    textAlign: "center",
     color: thirtiary,
     fontFamily: "Poppins-SemiBold",
     fontSize: width * 0.04,
   },
-  bottomBottomInnerContainerContentImage : {
-    width : "20%",
-    aspectRatio : 1,
+  bottomBottomInnerContainerContentImage: {
+    height: "40%",
+    aspectRatio: 1,
   },
-  bottomBottomInnerContainerContentText : {
+  bottomBottomInnerContainerContentText: {
     color: thirtiary,
     fontFamily: "Poppins-SemiBold",
-    fontSize: width * 0.04,
-  }
+    fontSize: width * 0.05,
+    backgroundColor: "none",
+    marginTop: "5%",
+    marginLeft: "3%",
+  },
 });

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View , StatusBar } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Ensure you're importing AsyncStorage correctly
 import { NavigationContainer } from "@react-navigation/native";
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
@@ -27,6 +27,7 @@ export default function App() {
     <NavigationContainer>
       <SafeAreaProvider>
         <SafeAreaView style={styles.container}>
+        
           {screen}
         </SafeAreaView>
       </SafeAreaProvider>
