@@ -9,39 +9,50 @@ import {
   Image,
   Platform,
 } from "react-native";
-import MapView from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
-import useCustomFonts from "../utilities/loadFonts.js";
+import io from "socket.io-client";
+import useCustomFonts from "../utilities/loadFonts.js"; // assuming you have a custom fonts utility
 
-import { primary, secondary, thirtiary } from "../utilities/color";
-import Wallet from "./wallet.jsx";
+import { primary, secondary, thirtiary } from "../utilities/color"; // assuming you have a color utility
+import Wallet from "./wallet.jsx"; // assuming you have a Wallet component
 
 const { height, width } = Dimensions.get("screen");
+
+const SOCKET_URL = "ws://192.168.1.2:5000"; // Replace with your WebSocket server port
+// Replace with your backend server URL
+console.log(MapView);
+console.log(Marker);
+console.log(Wallet);
+console.log(useCustomFonts);
 
 export default function Map() {
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const [loading, setLoading] = useState(true);
   const [pinLocation, setPinLocation] = useState(true);
-  const [isSatellite , setIsSatellite] = useState(false);
-  const [amount , setAmount] = useState(1200)
+  const [isSatellite, setIsSatellite] = useState(false);
+  const [nearbyStops, setNearbyStops] = useState([]);
+  const [amount, setAmount] = useState(1200);
+
   const mapRef = useRef();
+  const socket = useRef(null);
 
   const fontsLoaded = useCustomFonts();
 
   useEffect(() => {
-    if (pinLocation && location && mapRef.current) {
-      mapRef.current.animateToRegion(
-        {
-          latitude: location.latitude,
-          longitude: location.longitude,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        },
-        500
-      );
-    }
-  }, [pinLocation]);
+    // Initialize socket connection
+    socket.current = io(SOCKET_URL);
+
+    // Listen for nearby bus stops from the backend
+    socket.current.on("nearbyStops", (stops) => {
+      setNearbyStops(stops);
+    });
+
+    return () => {
+      socket.current.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -54,6 +65,11 @@ export default function Map() {
       let locationData = await Location.getCurrentPositionAsync({});
       setLocation(locationData.coords);
       setLoading(false);
+
+      // Send user location to backend
+      if (socket.current) {
+        socket.current.emit("getNearbyStops", locationData.coords);
+      }
     })();
   }, []);
 
@@ -125,8 +141,20 @@ export default function Map() {
           onPanDrag={handleRegionChange}
           showsMyLocationButton={false}
           customMapStyle={customMapStyle}
-          mapType={isSatellite ? "satellite" : "standard"} 
-        ></MapView>
+          mapType={isSatellite ? "satellite" : "standard"}
+        >
+          {nearbyStops.map((stop, index) => (
+            <Marker
+              key={index}
+              coordinate={{
+                latitude: stop.coordinates[1],
+                longitude: stop.coordinates[0],
+              }}
+              title={stop.name}
+              description={stop.district}
+            />
+          ))}
+        </MapView>
       )}
 
       <TouchableOpacity
@@ -178,16 +206,25 @@ export default function Map() {
         </TouchableOpacity>
       </View>
       <View style={styles.rightButtonContainer}>
-        <TouchableOpacity style={[styles.rightButton , {backgroundColor : isSatellite ? primary : "white"}]} onPress={()=> setIsSatellite(!isSatellite)}>
+        <TouchableOpacity
+          style={[
+            styles.rightButton,
+            { backgroundColor: isSatellite ? primary : "white" },
+          ]}
+          onPress={() => setIsSatellite(!isSatellite)}
+        >
           <Image
             source={require("../assets/pictures/layers.png")}
-            style={[styles.rightButtonImg , {tintColor : isSatellite ? "white" : secondary }]}
+            style={[
+              styles.rightButtonImg,
+              { tintColor: isSatellite ? "white" : secondary },
+            ]}
             resizeMode="contain"
           />
         </TouchableOpacity>
       </View>
       <View style={styles.walletContainer}>
-          <Wallet amount={amount}/>
+        <Wallet amount={amount} />
       </View>
     </View>
   );
@@ -287,20 +324,20 @@ const styles = StyleSheet.create({
     right: width * 0.05,
     position: "absolute",
   },
-  rightButton : {
+  rightButton: {
     width: "100%",
     aspectRatio: 1,
     borderRadius: 1000,
-    alignItems : "center",
-    justifyContent : "center",
-    backgroundColor : "white"
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "white",
   },
-  rightButtonImg : {
-    height : '50%',
+  rightButtonImg: {
+    height: "50%",
   },
-  walletContainer : {
-    position : "absolute",
-    bottom : height * 0.015,
-    left : width * 0.05,
-  }
+  walletContainer: {
+    position: "absolute",
+    bottom: height * 0.015,
+    left: width * 0.05,
+  },
 });

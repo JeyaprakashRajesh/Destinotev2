@@ -1,0 +1,123 @@
+[
+    {
+      "name": "Gounder Mills",
+      "district": "Coimbatore",
+      "type": "stop",
+      "coordinates": [76.965219, 11.016844]
+    },
+    {
+      "name": "Thudiyalur",
+      "district": "Coimbatore",
+      "type": "stop",
+      "coordinates": [76.974182, 11.155712]
+    },
+    {
+      "name": "Coimbatore",
+      "district": "Coimbatore",
+      "type": "terminal",
+      "coordinates": [76.963042, 11.016653]
+    },
+    {
+      "name": "Coimbatore",
+      "district": "Coimbatore",
+      "type": "stop",
+      "coordinates": [76.973370, 11.016355]
+    },
+    {
+      "name": "Coimbatore",
+      "district": "Coimbatore",
+      "type": "stop",
+      "coordinates": [76.964472, 11.015381]
+    },
+    {
+      "name": "Coimbatore",
+      "district": "Coimbatore",
+      "type": "stop",
+      "coordinates": [76.964898, 11.015623]
+    },
+    {
+      "name": "Coimbatore",
+      "district": "Coimbatore",
+      "type": "stop",
+      "coordinates": [76.970926, 11.018328]
+    },
+    {
+      "name": "Coimbatore",
+      "district": "Coimbatore",
+      "type": "stop",
+      "coordinates": [76.970037, 11.018126]
+    },
+    {
+      "name": "Coimbatore",
+      "district": "Coimbatore",
+      "type": "stop",
+      "coordinates": [76.968343, 11.018049]
+    },
+    {
+      "name": "Coimbatore",
+      "district": "Coimbatore",
+      "type": "stop",
+      "coordinates": [76.968541, 11.019283]
+    },
+    {
+      "name": "Coimbatore",
+      "district": "Coimbatore",
+      "type": "stop",
+      "coordinates": [76.963204, 11.016914]
+    },
+    {
+      "name": "Housing Unit",
+      "district": "Coimbatore",
+      "type": "stop",
+      "coordinates": [76.982073, 11.016948]
+    },
+    {
+      "name": "Rabindranath Tagore Rd, Poosaripalayam",
+      "district": "Coimbatore",
+      "type": "stop",
+      "coordinates": [76.965274, 11.019484]
+    },
+    {
+      "name": "Sangaralinganar Rd, Udayampalayam",
+      "district": "Coimbatore",
+      "type": "stop",
+      "coordinates": [76.961703, 11.017827]
+    },
+    {
+      "name": "Housing Unit, Ganapathy",
+      "district": "Coimbatore",
+      "type": "stop",
+      "coordinates": [76.976584, 11.021264]
+    },
+    {
+      "name": "Manikarampalayam, Ganapathy",
+      "district": "Coimbatore",
+      "type": "stop",
+      "coordinates": [76.968427, 11.021098]
+    },
+    {
+      "name": "Sangarapalayam",
+      "district": "Coimbatore",
+      "type": "stop",
+      "coordinates": [76.961723, 11.022228]
+    },
+    {
+      "name": "R.S. Puram",
+      "district": "Coimbatore",
+      "type": "stop",
+      "coordinates": [76.970377, 11.016602]
+    },
+    {
+      "name": "Sanganur Rd",
+      "district": "Coimbatore",
+      "type": "stop",
+      "coordinates": [76.968429, 11.020344]
+    },
+    {
+      "name": "Thudiyalur",
+      "district": "Coimbatore",
+      "type": "stop",
+      "coordinates": [76.970456, 11.024467]
+    }
+  ]
+  
