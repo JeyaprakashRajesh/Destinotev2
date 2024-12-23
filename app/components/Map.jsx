@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import {
   Dimensions,
   View,
@@ -19,8 +19,8 @@ import Wallet from "./wallet.jsx"; // assuming you have a Wallet component
 
 const { height, width } = Dimensions.get("screen");
 
-const SOCKET_URL = "ws://192.168.1.2:5000"; // Replace with your WebSocket server port
-// Replace with your backend server URL
+const SOCKET_URL = "ws://192.168.1.2:5000";
+
 console.log(MapView);
 console.log(Marker);
 console.log(Wallet);
@@ -33,27 +33,14 @@ export default function Map() {
   const [pinLocation, setPinLocation] = useState(true);
   const [isSatellite, setIsSatellite] = useState(false);
   const [nearbyStops, setNearbyStops] = useState([]);
+  const [zoomLevel, setZoomLevel] = useState(10);
   const [amount, setAmount] = useState(1200);
+  const [markerIcon, setMarkerIcon] = useState(null); // State for marker icon
 
   const mapRef = useRef();
   const socket = useRef(null);
 
   const fontsLoaded = useCustomFonts();
-
-  useEffect(() => {
-    // Initialize socket connection
-    socket.current = io(SOCKET_URL);
-
-    // Listen for nearby bus stops from the backend
-    socket.current.on("nearbyStops", (stops) => {
-      setNearbyStops(stops);
-    });
-
-    return () => {
-      socket.current.disconnect();
-    };
-  }, []);
-
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
@@ -71,6 +58,28 @@ export default function Map() {
         socket.current.emit("getNearbyStops", locationData.coords);
       }
     })();
+  }, []);
+  useEffect(() => {
+    const updatedIcon =
+      zoomLevel > 11
+        ? require("../assets/pictures/farMarker.png")
+        : require("../assets/pictures/nearMarker.png");
+
+    setMarkerIcon(updatedIcon);
+  }, [zoomLevel]);
+
+  useEffect(() => {
+    // Initialize socket connection
+    socket.current = io(SOCKET_URL);
+
+    // Listen for nearby bus stops from the backend
+    socket.current.on("nearbyStops", (stops) => {
+      setNearbyStops(stops);
+    });
+
+    return () => {
+      socket.current.disconnect();
+    };
   }, []);
 
   if (!fontsLoaded) {
@@ -122,10 +131,31 @@ export default function Map() {
     : null;
 
   const handlePinLocation = () => {
+    if (location && mapRef.current) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
+        },
+        500
+      );
+    }
     setPinLocation(true);
   };
 
   const handleRegionChange = () => {
+    setPinLocation(false);
+  };
+  const calculateZoomLevel = (region) => {
+    const zoom = Math.log2(360 / region.latitudeDelta);
+    console.log("Calculated Zoom Level:", Math.round(zoom));
+    setZoomLevel(Math.round(zoom));
+  };
+
+  const handleRegionChangeComplete = (region) => {
+    calculateZoomLevel(region);
     setPinLocation(false);
   };
 
@@ -141,18 +171,26 @@ export default function Map() {
           onPanDrag={handleRegionChange}
           showsMyLocationButton={false}
           customMapStyle={customMapStyle}
+          onRegionChangeComplete={handleRegionChangeComplete}
           mapType={isSatellite ? "satellite" : "standard"}
         >
           {nearbyStops.map((stop, index) => (
             <Marker
-              key={index}
+              key={`${index}-${zoomLevel}`}
               coordinate={{
                 latitude: stop.coordinates[1],
                 longitude: stop.coordinates[0],
               }}
               title={stop.name}
               description={stop.district}
-            />
+              anchor={{ x: 0, y: 0 }} 
+            >
+              <Image
+                source={markerIcon}
+                style={{ resizeMode : "contain" , height : zoomLevel > 11 ? 20 : 5 , aspectRatio : 1 }}
+                resizeMode="contain"
+              />
+            </Marker>
           ))}
         </MapView>
       )}
