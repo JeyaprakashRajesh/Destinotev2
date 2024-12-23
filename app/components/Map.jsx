@@ -8,8 +8,10 @@ import {
   Text,
   Image,
   Platform,
+  Animated,
+  Easing,
 } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Callout, Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import io from "socket.io-client";
 import useCustomFonts from "../utilities/loadFonts.js"; // assuming you have a custom fonts utility
@@ -19,7 +21,7 @@ import Wallet from "./wallet.jsx"; // assuming you have a Wallet component
 
 const { height, width } = Dimensions.get("screen");
 
-const SOCKET_URL = "ws://192.168.1.2:5000";
+const SOCKET_URL = "ws://192.168.1.6:5000";
 
 console.log(MapView);
 console.log(Marker);
@@ -35,10 +37,10 @@ export default function Map() {
   const [nearbyStops, setNearbyStops] = useState([]);
   const [zoomLevel, setZoomLevel] = useState(10);
   const [amount, setAmount] = useState(1200);
-  const [markerIcon, setMarkerIcon] = useState(null); // State for marker icon
 
   const mapRef = useRef();
   const socket = useRef(null);
+  const markerSize = useRef(new Animated.Value(1)).current; // 1 will represent the default size (far marker)
 
   const fontsLoaded = useCustomFonts();
   useEffect(() => {
@@ -59,14 +61,6 @@ export default function Map() {
       }
     })();
   }, []);
-  useEffect(() => {
-    const updatedIcon =
-      zoomLevel > 11
-        ? require("../assets/pictures/farMarker.png")
-        : require("../assets/pictures/nearMarker.png");
-
-    setMarkerIcon(updatedIcon);
-  }, [zoomLevel]);
 
   useEffect(() => {
     // Initialize socket connection
@@ -152,6 +146,14 @@ export default function Map() {
     const zoom = Math.log2(360 / region.latitudeDelta);
     console.log("Calculated Zoom Level:", Math.round(zoom));
     setZoomLevel(Math.round(zoom));
+
+    // Animate marker size based on zoom level
+    Animated.timing(markerSize, {
+      toValue: zoom > 12 ? 1.0 : 0.5, // Adjust marker size: 1 for close, 0.5 for far
+      duration: 200, // Adjust duration to make it smoother
+      easing: Easing.inOut(Easing.linear), // Use easing for smooth transitions
+      useNativeDriver: false,
+    }).start();
   };
 
   const handleRegionChangeComplete = (region) => {
@@ -171,7 +173,7 @@ export default function Map() {
           onPanDrag={handleRegionChange}
           showsMyLocationButton={false}
           customMapStyle={customMapStyle}
-          onRegionChangeComplete={handleRegionChangeComplete}
+          onRegionChange={handleRegionChangeComplete}
           mapType={isSatellite ? "satellite" : "standard"}
         >
           {nearbyStops.map((stop, index) => (
@@ -181,15 +183,49 @@ export default function Map() {
                 latitude: stop.coordinates[1],
                 longitude: stop.coordinates[0],
               }}
-              title={stop.name}
-              description={stop.district}
-              anchor={{ x: 0, y: 0 }} 
+              onPress={(e) => {
+                e.stopPropagation(); // Prevent the default behavior, no need to open directions popup
+              }}
             >
-              <Image
-                source={markerIcon}
-                style={{ resizeMode : "contain" , height : zoomLevel > 11 ? 20 : 5 , aspectRatio : 1 }}
-                resizeMode="contain"
-              />
+              <Animated.View
+                style={{
+                  transform: [{ scale: markerSize }], // Scale the marker size based on zoom level
+                }}
+              >
+                {zoomLevel > 12 ? (
+                  <Image
+                    source={require("../assets/pictures/farMarker.png")}
+                    style={{ height: 25, aspectRatio: 1 }}
+                    resizeMode="contain"
+                    tintColor={stop.type === "terminal" ? "blue" : "red"}
+                  />
+                ) : (
+                  <Image
+                    source={require("../assets/pictures/nearMarker.png")}
+                    style={{ height: 5, aspectRatio: 1 }}
+                    resizeMode="contain"
+                    tintColor={stop.type === "terminal" ? "blue" : "red"}
+                  />
+                )}
+              </Animated.View>
+              {/* Custom Callout with no action */}
+              <Callout
+                style={styles.StopCallout}
+                tooltip={true} // Prevents default actions like directions and map view
+                onPress={() => {}}
+              >
+                <View
+                  style={[
+                    styles.stopCalloutContainer,
+                    {
+                      backgroundColor:
+                        stop.type === "terminal" ? "blue" : "red",
+                    },
+                  ]}
+                >
+                  <Text style={styles.stopCalloutName}>{stop.name}</Text>
+                </View>
+              </Callout>
             </Marker>
           ))}
         </MapView>
@@ -377,5 +413,19 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: height * 0.015,
     left: width * 0.05,
+  },
+  stopCalloutContainer: {
+    width: width * 0.3,
+    height: height * 0.1,
+    padding: 10,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  stopCalloutName: {
+    color: "white",
+    fontSize: 14,
+    fontFamily: "Poppins-Regular",
   },
 });

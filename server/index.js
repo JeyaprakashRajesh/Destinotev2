@@ -7,6 +7,7 @@ const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const busStopRoutes = require("./routes/busStopRoutes");
 const BusStop = require("./models/busStopModel"); // Import the BusStop model
+const {getNearbyStops} = require("./controllers/busStopController"); // Import the getNearbyS
 
 // Load environment variables
 dotenv.config();
@@ -30,25 +31,16 @@ connectDB();
 io.on("connection", (socket) => {
   console.log("New WebSocket connection");
 
-  socket.on("getNearbyStops", (userLocation) => {
-    // Logic to get bus stops within 6 km of the user's location
+  socket.on("getNearbyStops", async (userLocation) => {
     const { latitude, longitude } = userLocation;
 
-    BusStop.find({
-      coordinates: {
-        $near: {
-          $geometry: { type: "Point", coordinates: [longitude, latitude] },
-          $maxDistance: 6000, // 6 km radius
-        },
-      },
-    })
-      .then((stops) => {
-        // Send the nearby bus stops to the frontend
-        socket.emit("nearbyStops", stops);
-      })
-      .catch((err) => {
-        console.error("Error fetching nearby bus stops:", err);
-      });
+    const nearbyStops = await getNearbyStops(latitude, longitude);
+    try {
+      socket.emit("nearbyStops", nearbyStops);
+    }
+    catch (err) {
+      console.error("Error fetching nearby bus stops:", err);
+    }
   });
 
   socket.on("disconnect", () => {

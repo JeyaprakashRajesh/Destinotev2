@@ -26,7 +26,35 @@ const getAllBusStops = async (req, res) => {
   }
 };
 
+const getNearbyStops = async (latitude, longitude) => {
+  try {
+    // Find stops within 6 km
+    const stops = await BusStop.find({
+      type: "stop",
+      coordinates: {
+        $near: {
+          $geometry: { type: "Point", coordinates: [longitude, latitude] },
+          $maxDistance: 5000, // 6 km radius
+        },
+      },
+    });
+
+    // Find all terminals regardless of distance
+    const terminals = await BusStop.find({ type: "terminal" });
+
+    // Combine stops and terminals into a single response
+    const nearbyStops = [...stops, ...terminals];
+
+    // Send the combined result to the frontend
+    return nearbyStops
+  } catch (err) {
+    console.error("Error fetching nearby bus stops:", err);
+  }
+};
+
+
 module.exports = {
   addBusStopsFromJson,
-  getAllBusStops
+  getAllBusStops,
+  getNearbyStops,
 };

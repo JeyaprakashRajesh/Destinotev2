@@ -24,7 +24,7 @@ export default function MainScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="white" />
       <Tab.Navigator
-        initialRouteName="Pay"
+        initialRouteName="Home"
         screenOptions={({ route }) => ({
           tabBarShowLabel: false,
           headerShown: false,
