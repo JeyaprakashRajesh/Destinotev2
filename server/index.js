@@ -6,24 +6,24 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const busStopRoutes = require("./routes/busStopRoutes");
-const BusStop = require("./models/busStopModel"); // Import the BusStop model
-const {getNearbyStops} = require("./controllers/busStopController"); // Import the getNearbyS
-
-// Load environment variables
+const BusStop = require("./models/busStopModel"); 
+const {getNearbyStops} = require("./controllers/busStopController");
+const routeRoutes = require("./routes/routeRoutes");
 dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "*", // allow all origins or specify the React Native frontend URL
+    origin: "*", 
     methods: ["GET", "POST"],
   },
 });
 
 app.use(cors());
-app.use(express.json()); // for parsing JSON request body
+app.use(express.json()); 
 app.use("/api/busstops", busStopRoutes);
+app.use("/api/routes", routeRoutes);
 
 connectDB();
 

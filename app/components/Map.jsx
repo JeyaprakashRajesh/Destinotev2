@@ -14,14 +14,14 @@ import {
 import MapView, { Callout, Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import io from "socket.io-client";
-import useCustomFonts from "../utilities/loadFonts.js"; // assuming you have a custom fonts utility
+import useCustomFonts from "../utilities/loadFonts.js";
 
-import { primary, secondary, thirtiary } from "../utilities/color"; // assuming you have a color utility
-import Wallet from "./wallet.jsx"; // assuming you have a Wallet component
+import { primary, secondary, thirtiary } from "../utilities/color";
+import Wallet from "./wallet.jsx";
 
 const { height, width } = Dimensions.get("screen");
 
-const SOCKET_URL = "ws://192.168.1.6:5000";
+const SOCKET_URL = "ws://192.168.1.2:5000";
 
 console.log(MapView);
 console.log(Marker);
@@ -36,11 +36,14 @@ export default function Map() {
   const [isSatellite, setIsSatellite] = useState(false);
   const [nearbyStops, setNearbyStops] = useState([]);
   const [zoomLevel, setZoomLevel] = useState(10);
-  const [amount, setAmount] = useState(1200);
+  const [selectedStop, setSelectedStop] = useState(null);
+  const [isMarkerSelected, setIsMarkerSelected] = useState(false);
+  const blue = "#034694";
+  const red = "#B22222";
 
   const mapRef = useRef();
   const socket = useRef(null);
-  const markerSize = useRef(new Animated.Value(1)).current; // 1 will represent the default size (far marker)
+  const markerSize = useRef(new Animated.Value(1)).current;
 
   const fontsLoaded = useCustomFonts();
   useEffect(() => {
@@ -54,8 +57,6 @@ export default function Map() {
       let locationData = await Location.getCurrentPositionAsync({});
       setLocation(locationData.coords);
       setLoading(false);
-
-      // Send user location to backend
       if (socket.current) {
         socket.current.emit("getNearbyStops", locationData.coords);
       }
@@ -63,10 +64,7 @@ export default function Map() {
   }, []);
 
   useEffect(() => {
-    // Initialize socket connection
     socket.current = io(SOCKET_URL);
-
-    // Listen for nearby bus stops from the backend
     socket.current.on("nearbyStops", (stops) => {
       setNearbyStops(stops);
     });
@@ -124,20 +122,21 @@ export default function Map() {
       }
     : null;
 
-  const handlePinLocation = () => {
-    if (location && mapRef.current) {
-      mapRef.current.animateToRegion(
-        {
-          latitude: location.latitude,
-          longitude: location.longitude,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
-        },
-        500
-      );
-    }
-    setPinLocation(true);
-  };
+    const handlePinLocation = () => {
+      if (location && mapRef.current) {
+        mapRef.current.animateToRegion(
+          {
+            latitude: location.latitude,
+            longitude: location.longitude,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          },
+          500
+        );
+      }
+      setPinLocation((prev) => !prev); 
+    };
+    
 
   const handleRegionChange = () => {
     setPinLocation(false);
@@ -146,93 +145,141 @@ export default function Map() {
     const zoom = Math.log2(360 / region.latitudeDelta);
     console.log("Calculated Zoom Level:", Math.round(zoom));
     setZoomLevel(Math.round(zoom));
-
-    // Animate marker size based on zoom level
     Animated.timing(markerSize, {
-      toValue: zoom > 12 ? 1.0 : 0.5, // Adjust marker size: 1 for close, 0.5 for far
-      duration: 200, // Adjust duration to make it smoother
-      easing: Easing.inOut(Easing.linear), // Use easing for smooth transitions
+      toValue: zoomLevel > 12 ? (zoomLevel == 13 ? 0.75 : 1.0) : 0.5,
+      duration: 100,
+      easing: Easing.inOut(Easing.linear),
       useNativeDriver: false,
     }).start();
   };
 
   const handleRegionChangeComplete = (region) => {
     calculateZoomLevel(region);
-    setPinLocation(false);
+  };
+  const handleMarkerPress = (stop) => {
+    if (selectedStop && selectedStop.id === stop.id) {
+      setSelectedStop(null);
+      setIsMarkerSelected(false);
+    } else {
+      setSelectedStop(stop);
+      setIsMarkerSelected(true);
+    }
   };
 
   return (
     <View style={styles.container}>
       {location && (
         <MapView
-          ref={mapRef}
-          style={styles.map}
-          initialRegion={region}
-          showsUserLocation={true}
-          followsUserLocation={pinLocation ? true : false}
-          onPanDrag={handleRegionChange}
-          showsMyLocationButton={false}
-          customMapStyle={customMapStyle}
-          onRegionChange={handleRegionChangeComplete}
-          mapType={isSatellite ? "satellite" : "standard"}
-        >
-          {nearbyStops.map((stop, index) => (
-            <Marker
-              key={`${index}-${zoomLevel}`}
-              coordinate={{
-                latitude: stop.coordinates[1],
-                longitude: stop.coordinates[0],
-              }}
-              onPress={(e) => {
-                e.stopPropagation(); // Prevent the default behavior, no need to open directions popup
+        ref={mapRef}
+        style={styles.map}
+        initialRegion={region}
+        showsUserLocation={true}
+        followsUserLocation={pinLocation ? true : false}
+        onPanDrag={handleRegionChange}
+        showsMyLocationButton={false}
+        customMapStyle={customMapStyle}
+        onRegionChange={handleRegionChangeComplete}
+        mapType={isSatellite ? "satellite" : "standard"}
+        onPress={() => {
+          setSelectedStop(null);
+          setIsMarkerSelected(false);
+        }}
+      >
+        {nearbyStops.map((stop, index) => (
+          <Marker
+            key={`${index}-${zoomLevel}`}
+            coordinate={{
+              latitude: stop.coordinates[1],
+              longitude: stop.coordinates[0],
+            }}
+            onPress={() => handleMarkerPress(stop)} 
+          >
+            <Animated.View
+              style={{
+                transform: [{ scale: markerSize }],
               }}
             >
-              <Animated.View
-                style={{
-                  transform: [{ scale: markerSize }], // Scale the marker size based on zoom level
-                }}
-              >
-                {zoomLevel > 12 ? (
-                  <Image
-                    source={require("../assets/pictures/farMarker.png")}
-                    style={{ height: 25, aspectRatio: 1 }}
-                    resizeMode="contain"
-                    tintColor={stop.type === "terminal" ? "blue" : "red"}
-                  />
-                ) : (
-                  <Image
-                    source={require("../assets/pictures/nearMarker.png")}
-                    style={{ height: 5, aspectRatio: 1 }}
-                    resizeMode="contain"
-                    tintColor={stop.type === "terminal" ? "blue" : "red"}
-                  />
-                )}
-              </Animated.View>
-              {/* Custom Callout with no action */}
-              <Callout
-                style={styles.StopCallout}
-                tooltip={true} // Prevents default actions like directions and map view
-                onPress={() => {}}
-              >
-                <View
-                  style={[
-                    styles.stopCalloutContainer,
-                    {
-                      backgroundColor:
-                        stop.type === "terminal" ? "blue" : "red",
-                    },
-                  ]}
-                >
-                  <Text style={styles.stopCalloutName}>{stop.name}</Text>
+              {zoomLevel > 12 ? (
+                <View style={{alignItems : "center"}}>
+                <View style={{
+                  backgroundColor : "white",
+                  height : 15,
+                  width : 18,
+                  position : "absolute",
+                  top : 2,
+                }}>
+
                 </View>
-              </Callout>
-            </Marker>
-          ))}
-        </MapView>
+              <Image
+                source={require("../assets/pictures/farMarker.png")}
+                style={{ height: 30, aspectRatio: 1 }}
+                resizeMode="contain"
+                tintColor={stop.type === "terminal" ? blue : red}
+              />
+              </View>
+              ) : (
+                <Image
+                  source={require("../assets/pictures/nearMarker.png")}
+                  style={{ height: 7, aspectRatio: 1 }}
+                  resizeMode="contain"
+                  tintColor={stop.type === "terminal" ? blue : red}
+                />
+              )}
+            </Animated.View>
+          </Marker>
+        ))}
+      </MapView>
+      
+      )}
+      {selectedStop && (
+        <View
+          style={[
+            styles.stopDetailsContainer,
+            {
+              backgroundColor: selectedStop.type === "terminal" ? blue : red,
+            },
+          ]}
+        >
+          <View>
+            <Text style={styles.stopDetailsName}>
+              {selectedStop.name}
+            </Text>
+            <Text style={styles.stopDetailsType}>
+              {selectedStop.type === "terminal" ? "Terminal" : "Stop"}
+            </Text>
+            <Text style={styles.stopDetailsDescription}>
+              {selectedStop.district} , {(!selectedStop.state) ? "Tamil Nadu" : selectedStop.state}
+            </Text>
+          </View>
+          <TouchableOpacity style={[styles.stopDetailsButton, {right : 10,}]}>
+            <Image 
+              source={require("../assets/pictures/directions.png")}
+              style={[styles.stopDetailsButtonImg, {tintColor : selectedStop.type === "terminal" ? blue : red}]}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.stopDetailsButton, {right : 60,}]}>
+          <Image 
+              source={require("../assets/pictures/share.png")}
+              style={[styles.stopDetailsButtonImg, {tintColor : selectedStop.type === "terminal" ? blue : red}]}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.stopDetailsButton, {right : 110,}]}>
+          <Image 
+              source={require("../assets/pictures/report.png")}
+              style={[styles.stopDetailsButtonImg, {tintColor : selectedStop.type === "terminal" ? blue : red}]}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+        </View>
       )}
 
       <TouchableOpacity
-        style={styles.locationButton}
+        style={[
+          styles.locationButton,
+          { bottom: isMarkerSelected ? 170 : 20 },
+        ]}
         onPress={handlePinLocation}
       >
         <Image
@@ -242,8 +289,9 @@ export default function Map() {
             styles.locaitonImg,
             { tintColor: pinLocation ? primary : secondary },
           ]}
-        ></Image>
+        />
       </TouchableOpacity>
+
       <View style={styles.topContainer}>
         <View style={styles.leftContainer}>
           <TouchableOpacity style={styles.leftContainerButton}>
@@ -296,9 +344,6 @@ export default function Map() {
             resizeMode="contain"
           />
         </TouchableOpacity>
-      </View>
-      <View style={styles.walletContainer}>
-        <Wallet amount={amount} />
       </View>
     </View>
   );
@@ -409,23 +454,43 @@ const styles = StyleSheet.create({
   rightButtonImg: {
     height: "50%",
   },
-  walletContainer: {
+  stopDetailsContainer: {
+    height: 150,
     position: "absolute",
-    bottom: height * 0.015,
-    left: width * 0.05,
+    width: width * 0.95,
+    bottom: 10,
+    borderRadius: 15,
+    paddingHorizontal : 20,
+    paddingVertical : 15
   },
-  stopCalloutContainer: {
-    width: width * 0.3,
-    height: height * 0.1,
-    padding: 10,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
+  stopDetailsName : {
+    fontFamily : "Montserrat-SemiBold",
+    color : "white",
+    fontSize : 23,
   },
-
-  stopCalloutName: {
-    color: "white",
-    fontSize: 14,
-    fontFamily: "Poppins-Regular",
+  stopDetailsType : {
+    fontFamily : "Montserrat-Regular",
+    color : "white",
+    fontSize : 13,
   },
+  stopDetailsDescription : {
+    fontFamily : "Montserrat-Regular",
+    color : "white",
+    fontSize : 13,
+  },
+  stopDetailsButton : {
+    height : 40,
+    width : 40,
+    backgroundColor : "white",
+    borderRadius : 1000,
+    position : "absolute",
+    bottom : 10,
+    alignItems : "center",
+    justifyContent : "center"
+  },
+  stopDetailsButtonImg : {
+    height : "60%",
+    aspectRatio : 1,
+    opacity : 0.9
+  }
 });
