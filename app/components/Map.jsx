@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Dimensions,
   View,
@@ -9,19 +9,21 @@ import {
   Image,
   Platform,
   Animated,
-  Easing,
 } from "react-native";
-import MapView, { Callout, Marker } from "react-native-maps";
+import MapView, { Callout, Marker, PROVIDER_GOOGLE } from "react-native-maps";
+
+import MapViewCluster from "react-native-map-clustering";
 import * as Location from "expo-location";
 import io from "socket.io-client";
 import useCustomFonts from "../utilities/loadFonts.js";
+import { debounce, throttle } from "lodash";
 
 import { primary, secondary, thirtiary } from "../utilities/color";
 import Wallet from "./wallet.jsx";
 
 const { height, width } = Dimensions.get("screen");
 
-const SOCKET_URL = "ws://192.168.1.2:5000";
+const SOCKET_URL = "ws://192.168.1.4:5000";
 
 console.log(MapView);
 console.log(Marker);
@@ -35,7 +37,6 @@ export default function Map() {
   const [pinLocation, setPinLocation] = useState(true);
   const [isSatellite, setIsSatellite] = useState(false);
   const [nearbyStops, setNearbyStops] = useState([]);
-  const [zoomLevel, setZoomLevel] = useState(10);
   const [selectedStop, setSelectedStop] = useState(null);
   const [isMarkerSelected, setIsMarkerSelected] = useState(false);
   const blue = "#034694";
@@ -43,7 +44,6 @@ export default function Map() {
 
   const mapRef = useRef();
   const socket = useRef(null);
-  const markerSize = useRef(new Animated.Value(1)).current;
 
   const fontsLoaded = useCustomFonts();
   useEffect(() => {
@@ -100,16 +100,56 @@ export default function Map() {
 
   const customMapStyle = [
     {
+      featureType: "administrative",
+      elementType: "geometry",
+      stylers: [
+        {
+          visibility: "off",
+        },
+      ],
+    },
+    {
+      featureType: "administrative.land_parcel",
+      elementType: "labels",
+      stylers: [
+        {
+          visibility: "off",
+        },
+      ],
+    },
+    {
       featureType: "poi",
-      stylers: [{ visibility: "off" }],
+      stylers: [
+        {
+          visibility: "off",
+        },
+      ],
+    },
+    {
+      featureType: "road",
+      elementType: "labels.icon",
+      stylers: [
+        {
+          visibility: "off",
+        },
+      ],
+    },
+    {
+      featureType: "road.local",
+      elementType: "labels",
+      stylers: [
+        {
+          visibility: "off",
+        },
+      ],
     },
     {
       featureType: "transit",
-      stylers: [{ visibility: "off" }],
-    },
-    {
-      featureType: "administrative",
-      stylers: [{ visibility: "off" }],
+      stylers: [
+        {
+          visibility: "off",
+        },
+      ],
     },
   ];
 
@@ -122,40 +162,27 @@ export default function Map() {
       }
     : null;
 
-    const handlePinLocation = () => {
-      if (location && mapRef.current) {
-        mapRef.current.animateToRegion(
-          {
-            latitude: location.latitude,
-            longitude: location.longitude,
-            latitudeDelta: 0.0922,
-            longitudeDelta: 0.0421,
-          },
-          500
-        );
-      }
-      setPinLocation((prev) => !prev); 
-    };
-    
+  const handlePinLocation = () => {
+    if (location && mapRef.current) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
+        },
+        500
+      );
+    }
+    setPinLocation((prev) => !prev);
+  };
 
-  const handleRegionChange = () => {
+  const throttledHandleRegionChange = throttle(() => {
     setPinLocation(false);
-  };
-  const calculateZoomLevel = (region) => {
-    const zoom = Math.log2(360 / region.latitudeDelta);
-    console.log("Calculated Zoom Level:", Math.round(zoom));
-    setZoomLevel(Math.round(zoom));
-    Animated.timing(markerSize, {
-      toValue: zoomLevel > 12 ? (zoomLevel == 13 ? 0.75 : 1.0) : 0.5,
-      duration: 100,
-      easing: Easing.inOut(Easing.linear),
-      useNativeDriver: false,
-    }).start();
-  };
+  }, 500);
 
-  const handleRegionChangeComplete = (region) => {
-    calculateZoomLevel(region);
-  };
+  const handleRegionChange = throttledHandleRegionChange;
+
   const handleMarkerPress = (stop) => {
     if (selectedStop && selectedStop.id === stop.id) {
       setSelectedStop(null);
@@ -165,11 +192,85 @@ export default function Map() {
       setIsMarkerSelected(true);
     }
   };
+  const renderMarkers = () => {
+    return nearbyStops.map((stop, index) => {
+      return (
+        <Marker
+          key={`${index}`}
+          coordinate={{
+            latitude: stop.coordinates[1],
+            longitude: stop.coordinates[0],
+          }}
+          onPress={() => handleMarkerPress(stop)}
+          stopPropagation={true}
+          icon={
+            stop.type === "stop"
+              ? require("../assets/pictures/farMarkerRed.png")
+              : require("../assets/pictures/farMarkerBlue.png")
+          }
+        />
+      );
+    });
+  };
+  const StopDetails = React.memo(({ selectedStop }) => {
+    if (!selectedStop) return null;
 
+    return (
+      <View
+        style={[
+          styles.stopDetailsContainer,
+          {
+            backgroundColor: selectedStop.type === "terminal" ? blue : red,
+          },
+        ]}
+      >
+        <View>
+          <Text style={styles.stopDetailsName}>{selectedStop.name}</Text>
+          <Text style={styles.stopDetailsType}>
+            {selectedStop.type === "terminal" ? "Terminal" : "Stop"}
+          </Text>
+          <Text style={styles.stopDetailsDescription}>
+            {selectedStop.district},{" "}
+            {!selectedStop.state ? "Tamil Nadu" : selectedStop.state}
+          </Text>
+        </View>
+        <TouchableOpacity style={[styles.stopDetailsButton, { right: 10 }]}>
+          <Image
+            source={require("../assets/pictures/directions.png")}
+            style={[
+              styles.stopDetailsButtonImg,
+              { tintColor: selectedStop.type === "terminal" ? blue : red },
+            ]}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.stopDetailsButton, { right: 60 }]}>
+          <Image
+            source={require("../assets/pictures/share.png")}
+            style={[
+              styles.stopDetailsButtonImg,
+              { tintColor: selectedStop.type === "terminal" ? blue : red },
+            ]}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.stopDetailsButton, { right: 110 }]}>
+          <Image
+            source={require("../assets/pictures/report.png")}
+            style={[
+              styles.stopDetailsButtonImg,
+              { tintColor: selectedStop.type === "terminal" ? blue : red },
+            ]}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+      </View>
+    );
+  });
   return (
     <View style={styles.container}>
       {location && (
-        <MapView
+        <MapViewCluster
         ref={mapRef}
         style={styles.map}
         initialRegion={region}
@@ -178,108 +279,48 @@ export default function Map() {
         onPanDrag={handleRegionChange}
         showsMyLocationButton={false}
         customMapStyle={customMapStyle}
-        onRegionChange={handleRegionChangeComplete}
+        provider={PROVIDER_GOOGLE}
         mapType={isSatellite ? "satellite" : "standard"}
         onPress={() => {
           setSelectedStop(null);
           setIsMarkerSelected(false);
         }}
-      >
-        {nearbyStops.map((stop, index) => (
-          <Marker
-            key={`${index}-${zoomLevel}`}
-            coordinate={{
-              latitude: stop.coordinates[1],
-              longitude: stop.coordinates[0],
-            }}
-            onPress={() => handleMarkerPress(stop)} 
-          >
-            <Animated.View
+        renderCluster={(cluster, onPress) => {
+          if (!cluster || !cluster.clusterId || !cluster.numMarkers) {
+            console.log('Cluster data is not available:', cluster); // Debugging output
+            return null; 
+          } 
+          const clusterSize = cluster.numMarkers; 
+          console.log('Rendering cluster with', clusterSize, 'markers'); // Debugging output
+      
+          return (
+            <View 
               style={{
-                transform: [{ scale: markerSize }],
+                height: 50,
+                width: 50,
+                borderRadius: 25,  // A fully rounded circle
+                backgroundColor: "red",
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderWidth: 2,
+                borderColor: 'white', // Optional: for better visibility
               }}
             >
-              {zoomLevel > 12 ? (
-                <View style={{alignItems : "center"}}>
-                <View style={{
-                  backgroundColor : "white",
-                  height : 15,
-                  width : 18,
-                  position : "absolute",
-                  top : 2,
-                }}>
-
-                </View>
-              <Image
-                source={require("../assets/pictures/farMarker.png")}
-                style={{ height: 30, aspectRatio: 1 }}
-                resizeMode="contain"
-                tintColor={stop.type === "terminal" ? blue : red}
-              />
-              </View>
-              ) : (
-                <Image
-                  source={require("../assets/pictures/nearMarker.png")}
-                  style={{ height: 7, aspectRatio: 1 }}
-                  resizeMode="contain"
-                  tintColor={stop.type === "terminal" ? blue : red}
-                />
-              )}
-            </Animated.View>
-          </Marker>
-        ))}
-      </MapView>
+              <Text style={{ color: 'white' }}>{clusterSize}</Text> {/* Showing the cluster size */}
+            </View>
+          );
+        }}
+        maxZoomLevel={20}
+        minZoomLevel={2}
+      >
+        {renderMarkers()}
+      </MapViewCluster>
       
       )}
-      {selectedStop && (
-        <View
-          style={[
-            styles.stopDetailsContainer,
-            {
-              backgroundColor: selectedStop.type === "terminal" ? blue : red,
-            },
-          ]}
-        >
-          <View>
-            <Text style={styles.stopDetailsName}>
-              {selectedStop.name}
-            </Text>
-            <Text style={styles.stopDetailsType}>
-              {selectedStop.type === "terminal" ? "Terminal" : "Stop"}
-            </Text>
-            <Text style={styles.stopDetailsDescription}>
-              {selectedStop.district} , {(!selectedStop.state) ? "Tamil Nadu" : selectedStop.state}
-            </Text>
-          </View>
-          <TouchableOpacity style={[styles.stopDetailsButton, {right : 10,}]}>
-            <Image 
-              source={require("../assets/pictures/directions.png")}
-              style={[styles.stopDetailsButtonImg, {tintColor : selectedStop.type === "terminal" ? blue : red}]}
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.stopDetailsButton, {right : 60,}]}>
-          <Image 
-              source={require("../assets/pictures/share.png")}
-              style={[styles.stopDetailsButtonImg, {tintColor : selectedStop.type === "terminal" ? blue : red}]}
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.stopDetailsButton, {right : 110,}]}>
-          <Image 
-              source={require("../assets/pictures/report.png")}
-              style={[styles.stopDetailsButtonImg, {tintColor : selectedStop.type === "terminal" ? blue : red}]}
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
-        </View>
-      )}
+      {isMarkerSelected && <StopDetails selectedStop={selectedStop} />}
 
       <TouchableOpacity
-        style={[
-          styles.locationButton,
-          { bottom: isMarkerSelected ? 170 : 20 },
-        ]}
+        style={[styles.locationButton, { bottom: isMarkerSelected ? 170 : 20 }]}
         onPress={handlePinLocation}
       >
         <Image
@@ -460,37 +501,37 @@ const styles = StyleSheet.create({
     width: width * 0.95,
     bottom: 10,
     borderRadius: 15,
-    paddingHorizontal : 20,
-    paddingVertical : 15
+    paddingHorizontal: 20,
+    paddingVertical: 15,
   },
-  stopDetailsName : {
-    fontFamily : "Montserrat-SemiBold",
-    color : "white",
-    fontSize : 23,
+  stopDetailsName: {
+    fontFamily: "Montserrat-SemiBold",
+    color: "white",
+    fontSize: 23,
   },
-  stopDetailsType : {
-    fontFamily : "Montserrat-Regular",
-    color : "white",
-    fontSize : 13,
+  stopDetailsType: {
+    fontFamily: "Montserrat-Regular",
+    color: "white",
+    fontSize: 13,
   },
-  stopDetailsDescription : {
-    fontFamily : "Montserrat-Regular",
-    color : "white",
-    fontSize : 13,
+  stopDetailsDescription: {
+    fontFamily: "Montserrat-Regular",
+    color: "white",
+    fontSize: 13,
   },
-  stopDetailsButton : {
-    height : 40,
-    width : 40,
-    backgroundColor : "white",
-    borderRadius : 1000,
-    position : "absolute",
-    bottom : 10,
-    alignItems : "center",
-    justifyContent : "center"
+  stopDetailsButton: {
+    height: 40,
+    width: 40,
+    backgroundColor: "white",
+    borderRadius: 1000,
+    position: "absolute",
+    bottom: 10,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  stopDetailsButtonImg : {
-    height : "60%",
-    aspectRatio : 1,
-    opacity : 0.9
-  }
+  stopDetailsButtonImg: {
+    height: "60%",
+    aspectRatio: 1,
+    opacity: 0.9,
+  },
 });
