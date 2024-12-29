@@ -23,7 +23,7 @@ import Wallet from "./wallet.jsx";
 
 const { height, width } = Dimensions.get("screen");
 
-const SOCKET_URL = "ws://192.168.1.2:5000";
+const SOCKET_URL = "ws://192.168.1.3:5000";
 
 console.log(MapView);
 console.log(Marker);
@@ -190,8 +190,20 @@ export default function Map() {
     } else {
       setSelectedStop(stop);
       setIsMarkerSelected(true);
+      if (mapRef.current) {
+        mapRef.current.animateToRegion(
+          {
+            latitude: stop.coordinates[1],
+            longitude: stop.coordinates[0],
+            latitudeDelta: 0.005, 
+            longitudeDelta: 0.005, 
+          },
+          500
+        );
+      }
     }
   };
+  
   const renderMarkers = () => {
     return nearbyStops.map((stop, index) => {
       return (
@@ -231,7 +243,7 @@ export default function Map() {
             {selectedStop.type === "terminal" ? "Terminal" : "Stop"}
           </Text>
           <Text style={styles.stopDetailsDescription}>
-            {selectedStop.district},{" "}
+            {selectedStop.stopNo},{" "}
             {!selectedStop.state ? "Tamil Nadu" : selectedStop.state}
           </Text>
         </View>
@@ -282,7 +294,7 @@ export default function Map() {
           customMapStyle={customMapStyle}
           provider={PROVIDER_GOOGLE}
           mapType={isSatellite ? "satellite" : "standard"}
-          radius={15}
+          radius={8}
           onPress={() => {
             setSelectedStop(null);
             setIsMarkerSelected(false);

@@ -1,9 +1,13 @@
 const mongoose = require("mongoose");
-const RouteSequence = require("./RouteSequence");  // Import the RouteSequence model
+const RouteSequence = require("./RouteSequence");
 
 const routeSchema = new mongoose.Schema(
   {
     RouteNo: {
+      type: String,
+      required: true,
+    },
+    RouteId: {
       type: String,
       required: true,
     },
@@ -20,32 +24,29 @@ const routeSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
-// Pre-save hook to auto-generate RouteNo
 routeSchema.pre("save", async function (next) {
+  console.log("Pre-save hook triggered...");
   if (!this.RouteNo) {
     try {
-      // Fetch and update the RouteSequence model to get the next sequence
+      console.log("Generating RouteNo...");
       const routeSeq = await RouteSequence.findOneAndUpdate(
         { name: "routeNo" },
         { $inc: { nextSequence: 1 } },
         { new: true, upsert: true }
       );
-      
-      // Format the RouteNo as R000001, R000002, etc.
       const routeNumber = `R${routeSeq.nextSequence.toString().padStart(6, "0")}`;
-      this.RouteNo = routeNumber; // Set the RouteNo field
-
-      next(); // Proceed with saving the route
+      this.RouteNo = routeNumber;
+      console.log("Generated RouteNo:", this.RouteNo);
+      next();
     } catch (err) {
       console.error("Error generating RouteNo:", err);
-      next(err); // Proceed with the error if any
+      next(err);
     }
   } else {
+    console.log("RouteNo already exists:", this.RouteNo);
     next();
   }
 });
 
-// Create and export the model
 const Route = mongoose.model("Route", routeSchema);
 module.exports = Route;

@@ -53,3 +53,4 @@ busStopSchema.pre('save', async function(next) {
 });
 const BusStop = mongoose.model('BusStop', busStopSchema);
 module.exports = BusStop;
+ 

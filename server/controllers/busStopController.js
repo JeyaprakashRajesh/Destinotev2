@@ -1,13 +1,26 @@
 const BusStop = require('../models/busStopModel');
-
+const StopSequence = require('../models/StopSequence');
 // Controller function to add bus stops from a JSON file
 const addBusStopsFromJson = async (req, res) => {
   const busStopsData = req.body;
   console.log('Received Bus Stops Data:', busStopsData);
 
   try {
+    // Fetch and update the stop sequence to ensure unique stopNo
+    const stopSeq = await StopSequence.findOneAndUpdate(
+      { name: 'busStop' },
+      { $inc: { nextSequence: busStopsData.length } },  // Increment sequence by the number of bus stops being added
+      { new: true, upsert: true }
+    );
+
+    // Manually generate stopNo for each bus stop in the incoming data
+    const busStopsWithStopNo = busStopsData.map((busStop, index) => {
+      const stopNumber = `S${(stopSeq.nextSequence - busStopsData.length + index + 1).toString().padStart(6, '0')}`;
+      return { ...busStop, stopNo: stopNumber };
+    });
+
     // Bulk insert bus stops into the database
-    const busStops = await BusStop.insertMany(busStopsData);
+    const busStops = await BusStop.insertMany(busStopsWithStopNo);
     res.status(201).json({ message: 'Bus stops added successfully', busStops });
   } catch (err) {
     console.error('Error adding bus stops:', err.message);
@@ -34,7 +47,7 @@ const getNearbyStops = async (latitude, longitude) => {
       coordinates: {
         $near: {
           $geometry: { type: "Point", coordinates: [longitude, latitude] },
-          $maxDistance: 5000, // 6 km radius
+          $maxDistance: 20000, // 6 km radius
         },
       },
     });

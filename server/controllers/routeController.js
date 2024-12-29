@@ -1,10 +1,25 @@
-const Route = require("../models/RouteModel");
+const Route = require("../models/routeModel");
+const RouteSequence = require("../models/RouteSequence");
 
 const addRoute = async (req, res) => {
   const routeData = req.body; 
   console.log("Received Route Data:", routeData);
 
   try {
+    // Generate the next RouteNo
+    const routeSeq = await RouteSequence.findOneAndUpdate(
+      { name: "busRoute" },
+      { $inc: { nextSequence: 1 } },
+      { new: true, upsert: true }
+    );
+
+    if (!routeSeq) {
+      throw new Error("Failed to generate route number sequence.");
+    }
+
+    const routeNumber = `R${routeSeq.nextSequence.toString().padStart(6, "0")}`;
+    routeData.RouteNo = routeNumber; // Assign generated RouteNo to routeData
+
     const newRoute = new Route(routeData);
 
     await newRoute.save();

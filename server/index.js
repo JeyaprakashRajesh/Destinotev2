@@ -9,6 +9,7 @@ const busStopRoutes = require("./routes/busStopRoutes");
 const BusStop = require("./models/busStopModel"); 
 const {getNearbyStops} = require("./controllers/busStopController");
 const routeRoutes = require("./routes/routeRoutes");
+const busRoutes = require("./routes/busRoutes");
 dotenv.config();
 
 const app = express();
@@ -24,10 +25,9 @@ app.use(cors());
 app.use(express.json()); 
 app.use("/api/busstops", busStopRoutes);
 app.use("/api/routes", routeRoutes);
-
+app.use("/api/buses", busRoutes);
 connectDB();
 
-// Set up WebSocket connection
 io.on("connection", (socket) => {
   console.log("New WebSocket connection");
 

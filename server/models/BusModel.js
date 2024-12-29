@@ -20,29 +20,28 @@ const busSchema = new mongoose.Schema(
     },
     busCoordinates: {
       type: [Number],
-      required: true,
-      index: "2dsphere",
+      index: "2dsphere", // Geospatial index for coordinates
     },
     busSpeed: {
       type: Number,
-      required: true,
     },
     busType: {
       type: String,
       required: true,
     },
-    busDistrict : {
-        type: String,
-        required: true,
+    busDistrict: {
+      type: String,
+      required: true,
     },
     busStatus: {
       type: String,
     },
   },
   {
-    timestamps: true,
+    timestamps: true, // Automatically add createdAt and updatedAt fields
   }
 );
 
+// Export the Bus model, not BusStop
 const Bus = mongoose.model("Bus", busSchema);
-module.exports = BusStop;
+module.exports = Bus;  // Export Bus model instead of BusStop
