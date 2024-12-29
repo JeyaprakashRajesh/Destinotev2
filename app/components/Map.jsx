@@ -23,7 +23,7 @@ import Wallet from "./wallet.jsx";
 
 const { height, width } = Dimensions.get("screen");
 
-const SOCKET_URL = "ws://192.168.1.4:5000";
+const SOCKET_URL = "ws://192.168.1.2:5000";
 
 console.log(MapView);
 console.log(Marker);
@@ -201,6 +201,7 @@ export default function Map() {
             latitude: stop.coordinates[1],
             longitude: stop.coordinates[0],
           }}
+          cluster={stop.type === "stop" ? true : false}
           onPress={() => handleMarkerPress(stop)}
           stopPropagation={true}
           icon={
@@ -271,51 +272,43 @@ export default function Map() {
     <View style={styles.container}>
       {location && (
         <MapViewCluster
-        ref={mapRef}
-        style={styles.map}
-        initialRegion={region}
-        showsUserLocation={true}
-        followsUserLocation={pinLocation ? true : false}
-        onPanDrag={handleRegionChange}
-        showsMyLocationButton={false}
-        customMapStyle={customMapStyle}
-        provider={PROVIDER_GOOGLE}
-        mapType={isSatellite ? "satellite" : "standard"}
-        onPress={() => {
-          setSelectedStop(null);
-          setIsMarkerSelected(false);
-        }}
-        renderCluster={(cluster, onPress) => {
-          if (!cluster || !cluster.clusterId || !cluster.numMarkers) {
-            console.log('Cluster data is not available:', cluster); // Debugging output
-            return null; 
-          } 
-          const clusterSize = cluster.numMarkers; 
-          console.log('Rendering cluster with', clusterSize, 'markers'); // Debugging output
-      
-          return (
-            <View 
-              style={{
-                height: 50,
-                width: 50,
-                borderRadius: 25,  // A fully rounded circle
-                backgroundColor: "red",
-                justifyContent: 'center',
-                alignItems: 'center',
-                borderWidth: 2,
-                borderColor: 'white', // Optional: for better visibility
-              }}
-            >
-              <Text style={{ color: 'white' }}>{clusterSize}</Text> {/* Showing the cluster size */}
-            </View>
-          );
-        }}
-        maxZoomLevel={20}
-        minZoomLevel={2}
-      >
-        {renderMarkers()}
-      </MapViewCluster>
-      
+          ref={mapRef}
+          style={styles.map}
+          initialRegion={region}
+          showsUserLocation={true}
+          followsUserLocation={pinLocation ? true : false}
+          onPanDrag={handleRegionChange}
+          showsMyLocationButton={false}
+          customMapStyle={customMapStyle}
+          provider={PROVIDER_GOOGLE}
+          mapType={isSatellite ? "satellite" : "standard"}
+          radius={15}
+          onPress={() => {
+            setSelectedStop(null);
+            setIsMarkerSelected(false);
+          }}
+          renderCluster={cluster => {
+            const { id, geometry, onPress } = cluster;
+            return (
+              <Marker
+                key={`cluster-${id}`}
+                coordinate={{
+                  longitude: geometry.coordinates[0],
+                  latitude: geometry.coordinates[1]
+                }}
+                onPress={onPress}
+              >
+                <View style={styles.markerCluster}>
+                </View>
+              </Marker>
+            );
+          }}
+          
+          maxZoomLevel={20}
+          minZoomLevel={2}
+        >
+          {renderMarkers()}
+        </MapViewCluster>
       )}
       {isMarkerSelected && <StopDetails selectedStop={selectedStop} />}
 
@@ -507,7 +500,7 @@ const styles = StyleSheet.create({
   stopDetailsName: {
     fontFamily: "Montserrat-SemiBold",
     color: "white",
-    fontSize: 23,
+    fontSize: width  * 0.06,
   },
   stopDetailsType: {
     fontFamily: "Montserrat-Regular",
@@ -534,4 +527,12 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     opacity: 0.9,
   },
+  markerCluster : {
+    height : 8,
+    aspectRatio : 1,
+    borderRadius : 1000,
+    backgroundColor : primary,
+    borderColor : secondary,
+    borderWidth : 2
+  }
 });
