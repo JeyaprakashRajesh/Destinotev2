@@ -23,7 +23,7 @@ import Wallet from "./wallet.jsx";
 
 const { height, width } = Dimensions.get("screen");
 
-const SOCKET_URL = "ws://192.168.1.3:5000";
+const SOCKET_URL = "ws://192.168.1.2:5000";
 
 console.log(MapView);
 console.log(Marker);
@@ -39,6 +39,7 @@ export default function Map() {
   const [nearbyStops, setNearbyStops] = useState([]);
   const [selectedStop, setSelectedStop] = useState(null);
   const [isMarkerSelected, setIsMarkerSelected] = useState(false);
+  const [bus, setBus] = useState([]);
   const blue = "#034694";
   const red = "#B22222";
 
@@ -66,9 +67,14 @@ export default function Map() {
   useEffect(() => {
     socket.current = io(SOCKET_URL);
     socket.current.on("nearbyStops", (stops) => {
+      console.log("Received nearby stops:", stops);
       setNearbyStops(stops);
     });
 
+    socket.current.on("busLocations", (busLocations) => {
+      console.log("Received bus locations:", busLocations);
+      setBus(busLocations);
+    });
     return () => {
       socket.current.disconnect();
     };
@@ -195,36 +201,93 @@ export default function Map() {
           {
             latitude: stop.coordinates[1],
             longitude: stop.coordinates[0],
-            latitudeDelta: 0.005, 
-            longitudeDelta: 0.005, 
+            latitudeDelta: 0.005,
+            longitudeDelta: 0.005,
           },
           500
         );
       }
     }
   };
-  
-  const renderMarkers = () => {
-    return nearbyStops.map((stop, index) => {
+  const renderBusMarkers = () => {
+    const calculateBearing = (prev, current) => {
+      console.log(prev, current);
+      if (!prev || !current) return 0;
+
+      const toRadians = (degree) => (degree * Math.PI) / 180;
+      const toDegrees = (radian) => (radian * 180) / Math.PI;
+
+      const lat1 = toRadians(prev[1]);
+      const lon1 = toRadians(prev[0]);
+      const lat2 = toRadians(current[1]);
+      const lon2 = toRadians(current[0]);
+
+      const dLon = lon2 - lon1;
+
+      const x = Math.sin(dLon) * Math.cos(lat2);
+      const y =
+        Math.cos(lat1) * Math.sin(lat2) -
+        Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+
+      let bearing = toDegrees(Math.atan2(x, y));
+      return (bearing + 360) % 360;
+    };
+
+    return bus.map((bus) => {
+      const currentCoordinates = {
+        latitude: bus.busCoordinates[1],
+        longitude: bus.busCoordinates[0],
+      };
+
+      const rotation = calculateBearing(
+        bus.previousCoordinates,
+        bus.busCoordinates
+      );
+
       return (
         <Marker
-          key={`${index}`}
-          coordinate={{
-            latitude: stop.coordinates[1],
-            longitude: stop.coordinates[0],
-          }}
-          cluster={stop.type === "stop" ? true : false}
-          onPress={() => handleMarkerPress(stop)}
+          key={bus.VehicleNo}
+          coordinate={currentCoordinates}
+          cluster={false}
           stopPropagation={true}
           icon={
-            stop.type === "stop"
-              ? require("../assets/pictures/farMarkerRed.png")
-              : require("../assets/pictures/farMarkerBlue.png")
+            bus.busType === "State Bus"
+              ? require("../assets/pictures/bus-blue.png")
+              : require("../assets/pictures/bus-red.png")
           }
+          rotation={rotation} 
+          anchor={{ x: 0.5, y: 0.5 }} 
         />
       );
     });
   };
+
+  const renderMarkers = () => {
+    return nearbyStops.map((stop, index) => {
+      if (stop.type !== "bus") {
+        return (
+          <Marker
+            key={`${index}`}
+            coordinate={{
+              latitude: stop.coordinates[1],
+              longitude: stop.coordinates[0],
+            }}
+            cluster={stop.type === "stop" ? true : false}
+            onPress={() => handleMarkerPress(stop)}
+            stopPropagation={true}
+            icon={getMarkerIcon(stop)}
+          />
+        );
+      }
+      return null;
+    });
+  };
+  const getMarkerIcon = (stop) => {
+    return stop.type === "stop"
+      ? require("../assets/pictures/farMarkerRed.png")
+      : require("../assets/pictures/farMarkerBlue.png");
+  };
+
   const StopDetails = React.memo(({ selectedStop }) => {
     if (!selectedStop) return null;
 
@@ -295,31 +358,31 @@ export default function Map() {
           provider={PROVIDER_GOOGLE}
           mapType={isSatellite ? "satellite" : "standard"}
           radius={8}
+          rotateEnabled={false}
           onPress={() => {
             setSelectedStop(null);
             setIsMarkerSelected(false);
           }}
-          renderCluster={cluster => {
+          renderCluster={(cluster) => {
             const { id, geometry, onPress } = cluster;
             return (
               <Marker
                 key={`cluster-${id}`}
                 coordinate={{
                   longitude: geometry.coordinates[0],
-                  latitude: geometry.coordinates[1]
+                  latitude: geometry.coordinates[1],
                 }}
                 onPress={onPress}
               >
-                <View style={styles.markerCluster}>
-                </View>
+                <View style={styles.markerCluster}></View>
               </Marker>
             );
           }}
-          
           maxZoomLevel={20}
           minZoomLevel={2}
         >
           {renderMarkers()}
+          {renderBusMarkers()}
         </MapViewCluster>
       )}
       {isMarkerSelected && <StopDetails selectedStop={selectedStop} />}
@@ -512,7 +575,7 @@ const styles = StyleSheet.create({
   stopDetailsName: {
     fontFamily: "Montserrat-SemiBold",
     color: "white",
-    fontSize: width  * 0.06,
+    fontSize: width * 0.06,
   },
   stopDetailsType: {
     fontFamily: "Montserrat-Regular",
@@ -539,12 +602,12 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     opacity: 0.9,
   },
-  markerCluster : {
-    height : 8,
-    aspectRatio : 1,
-    borderRadius : 1000,
-    backgroundColor : primary,
-    borderColor : secondary,
-    borderWidth : 2
-  }
+  markerCluster: {
+    height: 8,
+    aspectRatio: 1,
+    borderRadius: 1000,
+    backgroundColor: primary,
+    borderColor: secondary,
+    borderWidth: 2,
+  },
 });

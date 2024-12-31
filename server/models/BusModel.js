@@ -11,8 +11,11 @@ const busSchema = new mongoose.Schema(
       required: true,
     },
     RouteNo: {
-      type: String,
+      type: [String],
       required: true,
+    },
+    currentRouteNo : {
+      type: Number,
     },
     DriverId: {
       type: String,
@@ -20,10 +23,23 @@ const busSchema = new mongoose.Schema(
     },
     busCoordinates: {
       type: [Number],
-      index: "2dsphere", // Geospatial index for coordinates
+      index: "2dsphere",
+    },
+    previousCoordinates: {
+      type: [Number],
+      index: "2dsphere",
     },
     busSpeed: {
       type: Number,
+    },
+    busDepartureTime : {
+      type: Date
+    },
+    busProgress : {
+      type: [{
+        progress: {type: Number},
+        progressTime: {type: Date}
+      }]
     },
     busType: {
       type: String,
@@ -38,10 +54,9 @@ const busSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, // Automatically add createdAt and updatedAt fields
+    timestamps: true,
   }
 );
 
-// Export the Bus model, not BusStop
 const Bus = mongoose.model("Bus", busSchema);
-module.exports = Bus;  // Export Bus model instead of BusStop
+module.exports = Bus; 

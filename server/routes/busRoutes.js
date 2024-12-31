@@ -1,11 +1,15 @@
 const express = require("express");
 const router = express.Router();
-const busController = require("../controllers/busController"); // Assuming the controller is in busController.js
+const busController = require("../controllers/busController"); 
 
-// Route to add a bus
 router.post("/add", busController.addBus);
 
-// Route to fetch all buses (optional, can be removed if not needed)
 router.get("/", busController.getAllBuses);
+
+router.post("/update-coordinates", busController.updateBusCoordinates);
+
+router.post("/update-departure", busController.updateBusDeparture);
+
+router.post("/update-progress", busController.incrementBusProgress);
 
 module.exports = router;

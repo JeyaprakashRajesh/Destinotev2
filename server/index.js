@@ -10,6 +10,7 @@ const BusStop = require("./models/busStopModel");
 const {getNearbyStops} = require("./controllers/busStopController");
 const routeRoutes = require("./routes/routeRoutes");
 const busRoutes = require("./routes/busRoutes");
+const { getBusLocations } = require("./controllers/busController");
 dotenv.config();
 
 const app = express();
@@ -28,6 +29,31 @@ app.use("/api/routes", routeRoutes);
 app.use("/api/buses", busRoutes);
 connectDB();
 
+const sendBusDataToClient = async (socket) => {
+  try {
+    const buses = await Bus.find();
+
+    const busesWithRouteInfo = await Promise.all(buses.map(async (bus) => {
+      const route = await Route.findById(bus.RouteNo[bus.currentRouteNo]); 
+      return {
+        VehicleNo: bus.VehicleNo,
+        BusNo: bus.BusNo,
+        busCoordinates: bus.busCoordinates,
+        busStatus: bus.busStatus,
+        currentRoute: route ? route.routeName : "Unknown",
+        currentRouteNo: bus.currentRouteNo,
+        busType: bus.busType,
+        busDistrict: bus.busDistrict,
+      };
+    }));
+
+    socket.emit("busLocationUpdate", busesWithRouteInfo);
+
+  } catch (err) {
+    console.error("Error fetching bus data:", err);
+  }
+};
+
 io.on("connection", (socket) => {
   console.log("New WebSocket connection");
 
@@ -35,18 +61,27 @@ io.on("connection", (socket) => {
     const { latitude, longitude } = userLocation;
 
     const nearbyStops = await getNearbyStops(latitude, longitude);
+    const busLocations = await getBusLocations();
     try {
       socket.emit("nearbyStops", nearbyStops);
-    }
-    catch (err) {
+      socket.emit("busLocations", busLocations); 
+    } catch (err) {
       console.error("Error fetching nearby bus stops:", err);
     }
   });
+
+  setInterval(async () => {
+    const busLocations = await getBusLocations();
+    socket.emit("busLocations", busLocations); 
+  }, 7000);
+  
 
   socket.on("disconnect", () => {
     console.log("WebSocket disconnected");
   });
 });
+
+
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {

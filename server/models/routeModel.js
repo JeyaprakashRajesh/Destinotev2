@@ -12,7 +12,10 @@ const routeSchema = new mongoose.Schema(
       required: true,
     },
     busStops: {
-      type: [String],
+      type: [{
+        busStopId: {type: String},
+        ArrivalTime : {type: Number}
+      }],
       required: true,
     },
     routeDistrict: {

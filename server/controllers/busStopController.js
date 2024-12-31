@@ -66,6 +66,8 @@ const getNearbyStops = async (latitude, longitude) => {
 };
 
 
+
+
 module.exports = {
   addBusStopsFromJson,
   getAllBusStops,
