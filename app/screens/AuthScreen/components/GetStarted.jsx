@@ -17,25 +17,25 @@ import {
   secondary,
   secondaryAcent,
   thirtiary,
-} from "../utilities/color";
+} from "../../../utilities/color";
 
 const { height, width } = Dimensions.get("screen");
 
 
 const listData = [
   {
-    image: require("../assets/pictures/getStartedLocation.png"),
+    image: require("../../../assets/pictures/getStartedLocation.png"),
     title: "BUS TRACKING",
     subTitle:
       "Tracks all the available buses and shares live location feed to the user",
   },
   {
-    image: require("../assets/pictures/getStartedWallet.png"),
+    image: require("../../../assets/pictures/getStartedWallet.png"),
     title: "WALLET",
     subTitle: "A Wallet where the user can instantly pay any bus ticket",
   },
   {
-    image: require("../assets/pictures/getStartedPay.png"),
+    image: require("../../../assets/pictures/getStartedPay.png"),
     title: "TAP N PAY",
     subTitle: "Use the Built-in NFC to Tap N Pay your bus fare.",
   },
@@ -141,7 +141,7 @@ export default function GetStarted({ navigation  }) {
         <View style={styles.imageContainer}>
           <Image
             style={styles.image}
-            source={require("../assets/pictures/destinote-getstarted.png")}
+            source={require("../../../assets/pictures/destinote-getstarted.png")}
             resizeMode="contain"
           />
         </View>

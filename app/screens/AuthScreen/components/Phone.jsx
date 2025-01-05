@@ -15,17 +15,14 @@ import {
   secondary,
   secondaryAcent,
   thirtiary,
-} from "../utilities/color";
+} from "../../../utilities/color";
 
 const { height, width } = Dimensions.get("screen");
 
-import MainScreen from "../screens/MainScreen";
-
-export default function Otp({ navigation, setScreen }) {
-  const [otp, setOtp] = useState();
-
+export default function Phone({ navigation }) {
+  const [phone, setPhone] = useState("");
   function handleGetOtp() {
-    setScreen(<MainScreen />)
+    navigation.navigate("Otp");
   }
 
   return (
@@ -34,7 +31,7 @@ export default function Otp({ navigation, setScreen }) {
         <Pressable style={styles.back} onPress={() => navigation.pop()}>
           <Image
             style={styles.backImage}
-            source={require("../assets/pictures/back.png")}
+            source={require("../../../assets/pictures/back.png")}
             resizeMode="contain"
           />
         </Pressable>
@@ -44,25 +41,23 @@ export default function Otp({ navigation, setScreen }) {
           <Image
             style={styles.headerImage}
             resizeMode="contain"
-            source={require("../assets/pictures/message.png")}
+            source={require("../../../assets/pictures/phone.png")}
           />
         </View>
         <View style={styles.headerContent}>
           <Text style={styles.headerContentText}>
-            Enter the OTP
+            Enter the Phone Number to continue
           </Text>
         </View>
       </View>
       <View style={styles.phoneContainer}>
-        <Text style={styles.phoneLabel}>
-          OTP
-        </Text>
+        <Text style={styles.phoneLabel}>Phone number</Text>
         <TextInput
           style={styles.phoneInput}
           keyboardType="numeric"
-          value={otp}
-          onChangeText={(val) => setOtp(val)}
-          placeholder="Enter OTP"
+          value={phone}
+          onChangeText={(val) => setPhone(val)}
+          placeholder="Enter phone number"
           placeholderTextColor="grey"
         />
       </View>
@@ -70,7 +65,7 @@ export default function Otp({ navigation, setScreen }) {
         <View style={styles.lineElement}></View>
         <View style={styles.lineMiddle}>
           <Image
-            source={require("../assets/pictures/cross.png")}
+            source={require("../../../assets/pictures/cross.png")}
             resizeMode="contain"
             style={styles.lineMidlleImage}
           />
@@ -78,7 +73,7 @@ export default function Otp({ navigation, setScreen }) {
         <View style={styles.lineElement}></View>
       </View>
       <TouchableOpacity style={styles.button} onPress={handleGetOtp}>
-        <Text style={styles.buttonText}>Login</Text>
+        <Text style={styles.buttonText}>Get OTP</Text>
       </TouchableOpacity>
     </View>
   );
@@ -88,21 +83,21 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: secondary,
     flex: 1,
-    alignItems: "center"
+    alignItems: "center",
   },
   backContainer: {
     marginTop: "10%",
     height: height * 0.05,
-    width: width * 0.85
+    width: width * 0.85,
   },
   back: {
     aspectRatio: 1,
     height: "100%",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
   },
   backImage: {
-    height: "60%"
+    height: "60%",
   },
   header: {
     width: width * 0.85,
@@ -115,11 +110,11 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     height: "60%",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
   },
   headerImage: {
     height: "70%",
-    width: "90%"
+    width: "90%",
   },
   headerContent: {
     height: "100%",
@@ -151,7 +146,7 @@ const styles = StyleSheet.create({
     color: thirtiary,
     fontFamily: "Poppins-Regular",
     backgroundColor: secondaryAcent,
-    paddingLeft: width * 0.05
+    paddingLeft: width * 0.05,
   },
   loadingContainer: {
     flex: 1,
@@ -166,24 +161,24 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     overflow: "hidden",
     marginTop: width * 0.05,
-    marginBottom: width * 0.05
+    marginBottom: width * 0.05,
   },
   lineElement: {
     borderColor: thirtiary,
-    borderWidth: width * 0.005,
+    borderWidth: width * 0.002,
     borderRadius: width * 0.3,
-    width: width * 0.4
+    width: width * 0.4,
   },
   lineMiddle: {
     aspectRatio: 1,
     height: "100%",
     overflow: "hidden",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
   },
   lineMidlleImage: {
     aspectRatio: 1,
-    height: '50%'
+    height: "50%",
   },
   button: {
     width: width * 0.85,
@@ -191,12 +186,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: primary,
-    borderRadius: width * 0.05
+    borderRadius: width * 0.03,
   },
   buttonText: {
     color: thirtiary,
     fontFamily: "JosefinSans-SemiBold",
     marginBottom: Platform.OS === "ios" ? 0 : height * 0.005,
-    fontSize: width * 0.05,
-  }
+    fontSize: width * 0.04,
+  },
 });

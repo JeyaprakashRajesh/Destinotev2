@@ -9,10 +9,10 @@ import {
   Image,
 } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import Home from "../components/Home";
-import Pay from "../components/Pay";
-import Ticket from "../components/Ticket";
-import { primary, secondary, thirtiary } from "../utilities/color";
+import Home from "./components/Home";
+import Pay from "./components/Pay";
+import Ticket from "./components/Ticket";
+import { primary, secondary, thirtiary } from "../../utilities/color";
 
 const Tab = createBottomTabNavigator();
 const { height, width } = Dimensions.get("screen");
@@ -62,7 +62,7 @@ export default function MainScreen() {
                 }}
               >
                 <Image
-                  source={require("../assets/pictures/home.png")}
+                  source={require("../../assets/pictures/home.png")}
                   style={{
                     height: "35%",
                     aspectRatio: 1,
@@ -100,7 +100,7 @@ export default function MainScreen() {
                 }}
               >
                 <Image
-                  source={require("../assets/pictures/pay.png")}
+                  source={require("../../assets/pictures/pay.png")}
                   style={{
                     height: "35%",
                     aspectRatio: 1,
@@ -139,7 +139,7 @@ export default function MainScreen() {
                 }}
               >
                 <Image
-                  source={require("../assets/pictures/ticket.png")}
+                  source={require("../../assets/pictures/ticket.png")}
                   style={{
                     height: "35%",
                     aspectRatio: 1,

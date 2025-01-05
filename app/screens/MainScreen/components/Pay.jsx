@@ -5,17 +5,13 @@ import {
   Dimensions,
   Image,
   TouchableOpacity,
-  Pressable,
-  Platform,
 } from "react-native";
 import {
-  primary,
   secondary,
   thirtiary,
   secondaryAcent,
-} from "../utilities/color";
+} from "../../../utilities/color";
 import { useState } from "react";
-import { useRoute } from "@react-navigation/native";
 
 const { height, width } = Dimensions.get("screen");
 export default function Pay() {
@@ -31,7 +27,7 @@ export default function Pay() {
           onPress={() => setNfc(!nfc)}
         >
           <Image
-            source={require("../assets/pictures/tap_to_pay.png")}
+            source={require("../../../assets/pictures/tap_to_pay.png")}
             style={[
               styles.payImage,
               { tintColor: thirtiary },
@@ -47,7 +43,7 @@ export default function Pay() {
         <View style={styles.walletChildContainer}>
           <Image
             style={styles.walletBalanceImage}
-            source={require("../assets/pictures/pay_wallet.png")}
+            source={require("../../../assets/pictures/pay_wallet.png")}
           />
           <Text style={styles.walletBalanceText}>BALANCE</Text>
           <Text style={styles.walletBalanceContent}> Rs. {balance}</Text>
@@ -56,13 +52,13 @@ export default function Pay() {
           <View style={styles.walletChildRightTopContainer}>
             <TouchableOpacity style={styles.walletChildElement}>
               <Image
-                source={require("../assets/pictures/wallet.png")}
+                source={require("../../../assets/pictures/wallet.png")}
                 style={styles.walletChildRightBottomElementImage}
               />
             </TouchableOpacity>
             <TouchableOpacity style={styles.walletChildElement}>
               <Image
-                source={require("../assets/pictures/transaction.png")}
+                source={require("../../../assets/pictures/transaction.png")}
                 style={styles.walletChildRightBottomElementImage}
               />
             </TouchableOpacity>
@@ -70,7 +66,7 @@ export default function Pay() {
           <View style={styles.walletChildRightBottomContainer}>
             <TouchableOpacity style={styles.walletChildElement}>
             <Image
-                source={require("../assets/pictures/headset.png")}
+                source={require("../../../assets/pictures/headset.png")}
                 style={[
                   styles.walletChildRightBottomElementImage,
                 ]}
@@ -78,7 +74,7 @@ export default function Pay() {
             </TouchableOpacity>
             <TouchableOpacity style={styles.walletChildElement}>
               <Image
-                source={require("../assets/pictures/qr-code.png")}
+                source={require("../../../assets/pictures/qr-code.png")}
                 style={[styles.walletChildRightBottomElementImage]}
               />
             </TouchableOpacity>
@@ -90,7 +86,7 @@ export default function Pay() {
           <View style={styles.bottomMonthySpendingTextContainer}>
             <Text style={styles.bottomMonthySpendingText}>Monthly outflow</Text>
             <Image
-              source={require("../assets/pictures/line-chart.png")}
+              source={require("../../../assets/pictures/line-chart.png")}
               resizeMode="contain"
               style={styles.bottomMonthySpendingImage}
             />
@@ -107,7 +103,7 @@ export default function Pay() {
               <Image
                 style={styles.bottomBottomInnerContainerContentImage}
                 resizeMode="contain"
-                source={require("../assets/pictures/pay_distance.png")}
+                source={require("../../../assets/pictures/pay_distance.png")}
               />
               <Text style={styles.bottomBottomInnerContainerContentText}>
                 14 KM
@@ -124,7 +120,7 @@ export default function Pay() {
             <Image
                 style={styles.bottomBottomInnerContainerContentImage}
                 resizeMode="contain"
-                source={require("../assets/pictures/co2.png")}
+                source={require("../../../assets/pictures/co2.png")}
               />
               <Text style={styles.bottomBottomInnerContainerContentText}>
                 420 PPM

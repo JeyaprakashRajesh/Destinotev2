@@ -15,20 +15,16 @@ import MapView, { Callout, Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import MapViewCluster from "react-native-map-clustering";
 import * as Location from "expo-location";
 import io from "socket.io-client";
-import useCustomFonts from "../utilities/loadFonts.js";
+import useCustomFonts from "../../../utilities/loadFonts.js";
 import { debounce, throttle } from "lodash";
 
-import { primary, secondary, thirtiary } from "../utilities/color";
-import Wallet from "./wallet.jsx";
+import { primary, secondary, thirtiary } from "../../../utilities/color.js";
 
 const { height, width } = Dimensions.get("screen");
 
 const SOCKET_URL = "ws://192.168.1.2:5000";
 
-console.log(MapView);
-console.log(Marker);
-console.log(Wallet);
-console.log(useCustomFonts);
+
 
 export default function Map() {
   const [location, setLocation] = useState(null);
@@ -252,8 +248,8 @@ export default function Map() {
           stopPropagation={true}
           icon={
             bus.busType === "State Bus"
-              ? require("../assets/pictures/bus-blue.png")
-              : require("../assets/pictures/bus-red.png")
+              ? require("../../../assets/pictures/bus-blue.png")
+              : require("../../../assets/pictures/bus-red.png")
           }
           rotation={rotation} 
           anchor={{ x: 0.5, y: 0.5 }} 
@@ -284,8 +280,8 @@ export default function Map() {
   };
   const getMarkerIcon = (stop) => {
     return stop.type === "stop"
-      ? require("../assets/pictures/farMarkerRed.png")
-      : require("../assets/pictures/farMarkerBlue.png");
+      ? require("../../../assets/pictures/farMarkerRed.png")
+      : require("../../../assets/pictures/farMarkerBlue.png");
   };
 
   const StopDetails = React.memo(({ selectedStop }) => {
@@ -312,7 +308,7 @@ export default function Map() {
         </View>
         <TouchableOpacity style={[styles.stopDetailsButton, { right: 10 }]}>
           <Image
-            source={require("../assets/pictures/directions.png")}
+            source={require("../../../assets/pictures/directions.png")}
             style={[
               styles.stopDetailsButtonImg,
               { tintColor: selectedStop.type === "terminal" ? blue : red },
@@ -322,7 +318,7 @@ export default function Map() {
         </TouchableOpacity>
         <TouchableOpacity style={[styles.stopDetailsButton, { right: 60 }]}>
           <Image
-            source={require("../assets/pictures/share.png")}
+            source={require("../../../assets/pictures/share.png")}
             style={[
               styles.stopDetailsButtonImg,
               { tintColor: selectedStop.type === "terminal" ? blue : red },
@@ -332,7 +328,7 @@ export default function Map() {
         </TouchableOpacity>
         <TouchableOpacity style={[styles.stopDetailsButton, { right: 110 }]}>
           <Image
-            source={require("../assets/pictures/report.png")}
+            source={require("../../../assets/pictures/report.png")}
             style={[
               styles.stopDetailsButtonImg,
               { tintColor: selectedStop.type === "terminal" ? blue : red },
@@ -392,7 +388,7 @@ export default function Map() {
         onPress={handlePinLocation}
       >
         <Image
-          source={require("../assets/pictures/location.png")}
+          source={require("../../../assets/pictures/location.png")}
           resizeMode="contain"
           style={[
             styles.locaitonImg,
@@ -405,21 +401,21 @@ export default function Map() {
         <View style={styles.leftContainer}>
           <TouchableOpacity style={styles.leftContainerButton}>
             <Image
-              source={require("../assets/pictures/profile.png")}
+              source={require("../../../assets/pictures/profile.png")}
               style={styles.leftContainerButtonImg}
               resizeMode="contain"
             />
           </TouchableOpacity>
           <TouchableOpacity style={styles.leftContainerButton}>
             <Image
-              source={require("../assets/pictures/favourite.png")}
+              source={require("../../../assets/pictures/favourite.png")}
               style={styles.leftContainerButtonImg}
               resizeMode="contain"
             />
           </TouchableOpacity>
           <TouchableOpacity style={styles.leftContainerButton}>
             <Image
-              source={require("../assets/pictures/busStop.png")}
+              source={require("../../../assets/pictures/busStop.png")}
               style={styles.leftContainerButtonImg}
               resizeMode="contain"
             />
@@ -428,7 +424,7 @@ export default function Map() {
         <TouchableOpacity style={styles.rightContainer}>
           <View style={styles.rightInnerContainer}>
             <Image
-              source={require("../assets/pictures/search.png")}
+              source={require("../../../assets/pictures/search.png")}
               resizeMode="contain"
               style={[styles.searchImg, { tintColor: "#00ADB5" }]}
             />
@@ -445,7 +441,7 @@ export default function Map() {
           onPress={() => setIsSatellite(!isSatellite)}
         >
           <Image
-            source={require("../assets/pictures/layers.png")}
+            source={require("../../../assets/pictures/layers.png")}
             style={[
               styles.rightButtonImg,
               { tintColor: isSatellite ? "white" : secondary },
