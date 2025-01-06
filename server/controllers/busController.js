@@ -1,4 +1,5 @@
 const Bus = require("../models/BusModel");
+const Route = require("../models/routeModel");
 
 const addBus = async (req, res) => {
   const { VehicleNo, BusNo, RouteNo, DriverId, busType, busDistrict } =
@@ -213,6 +214,101 @@ const getBusLocations = async () => {
     return [];
   }
 };
+const getMarkerBus = async (req, res) => {
+  const { selectedStop } = req.body;
+
+  try {
+    if (!selectedStop || !selectedStop.coordinates || !selectedStop.stopNo) {
+      return res.status(400).json({ error: "Invalid selectedStop data provided" });
+    }
+
+    const { coordinates, stopNo } = selectedStop;
+
+    // Find routes that include the selected bus stop
+    const routes = await Route.find({
+      "busStops.busStopId": stopNo,
+    });
+
+    if (!routes || routes.length === 0) {
+      return res.status(404).json({ error: "No routes found for the selected bus stop" });
+    }
+
+    // Get route numbers from the routes
+    const routeNumbers = routes.map((route) => route.RouteNo);
+
+    // Find buses that are currently running on these routes
+    const buses = await Bus.find({
+      currentRouteNo: { $in: routeNumbers },
+    });
+
+    if (!buses || buses.length === 0) {
+      return res.status(404).json({ error: "No buses found for the selected routes" });
+    }
+
+    // Find the closest bus based on progress
+    let closestBus = null;
+    let minimumDistance = Infinity;
+
+    for (const bus of buses) {
+      const lastProgress = bus.busProgress[bus.busProgress.length - 1] || { progress: 0 };
+      const currentRoute = routes.find(route => route.RouteNo === bus.currentRouteNo);
+
+      if (!currentRoute) continue;
+
+      const busStopIndex = currentRoute.busStops.findIndex(stop => stop.busStopId === stopNo);
+      if (busStopIndex === -1) continue;
+
+      // Calculate distance (progress difference)
+      const distance = Math.abs(busStopIndex - lastProgress.progress);
+
+      if (distance < minimumDistance) {
+        minimumDistance = distance;
+        closestBus = bus;
+      }
+    }
+
+    if (!closestBus) {
+      return res.status(404).json({ error: "No nearby buses found for the selected stop" });
+    }
+
+    // Calculate expected arrival time
+    const currentRoute = routes.find(route => route.RouteNo === closestBus.currentRouteNo);
+    const busStopDetails = currentRoute.busStops.find(stop => stop.busStopId === stopNo);
+
+    const lastProgress = closestBus.busProgress[closestBus.busProgress.length - 1];
+    const lastProgressTime = lastProgress.progressTime;
+
+    let expectedArrivalTime = new Date(lastProgressTime);
+
+    // Go through the upcoming bus stops (after the current progress of the bus)
+    let nextStopFound = false;
+    for (let i = lastProgress.progress; i < currentRoute.busStops.length; i++) {
+      const busStop = currentRoute.busStops[i];
+      if (busStop.busStopId === stopNo) {
+        nextStopFound = true;
+        break;
+      }
+
+      // Calculate arrival time for the next stop
+      const arrivalTimeAtStop = busStop.ArrivalTime * 60000; // Convert ArrivalTime to milliseconds
+      expectedArrivalTime = new Date(expectedArrivalTime.getTime() + arrivalTimeAtStop);
+    }
+    console.log(expectedArrivalTime)
+    return res.status(200).json({
+      message: "Closest bus found successfully",
+      closestBus: {
+        VehicleNo: closestBus.VehicleNo,
+        BusNo: closestBus.BusNo,
+        currentCoordinates: closestBus.busCoordinates,
+        expectedArrivalTime,
+      },
+    });
+  } catch (err) {
+    console.error("Error fetching nearby buses:", err.message);
+    return res.status(500).json({ error: "Failed to fetch nearby buses", message: err.message });
+  }
+};
+
 
 module.exports = {
   addBus,
@@ -221,4 +317,5 @@ module.exports = {
   updateBusDeparture,
   incrementBusProgress,
   getBusLocations,
+  getMarkerBus
 };

@@ -10,7 +10,7 @@ import {
   Platform,
   Animated,
 } from "react-native";
-import MapView, { Callout, Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 
 import MapViewCluster from "react-native-map-clustering";
 import * as Location from "expo-location";
@@ -19,12 +19,11 @@ import useCustomFonts from "../../../utilities/loadFonts.js";
 import { debounce, throttle } from "lodash";
 
 import { primary, secondary, thirtiary } from "../../../utilities/color.js";
-
+import axios from "axios";
 const { height, width } = Dimensions.get("screen");
 
-const SOCKET_URL = "ws://192.168.1.2:5000";
-
-
+const SOCKET_URL = "ws://172.21.0.1:5000";
+const backendURL = "http://172.21.0.1:5000";
 
 export default function Map() {
   const [location, setLocation] = useState(null);
@@ -36,6 +35,8 @@ export default function Map() {
   const [selectedStop, setSelectedStop] = useState(null);
   const [isMarkerSelected, setIsMarkerSelected] = useState(false);
   const [bus, setBus] = useState([]);
+  const [arrivalTimeInMinutes, setArrivalTimeInMinutes] = useState(null);
+
   const blue = "#034694";
   const red = "#B22222";
 
@@ -63,12 +64,10 @@ export default function Map() {
   useEffect(() => {
     socket.current = io(SOCKET_URL);
     socket.current.on("nearbyStops", (stops) => {
-      console.log("Received nearby stops:", stops);
       setNearbyStops(stops);
     });
 
     socket.current.on("busLocations", (busLocations) => {
-      console.log("Received bus locations:", busLocations);
       setBus(busLocations);
     });
     return () => {
@@ -207,7 +206,6 @@ export default function Map() {
   };
   const renderBusMarkers = () => {
     const calculateBearing = (prev, current) => {
-      console.log(prev, current);
       if (!prev || !current) return 0;
 
       const toRadians = (degree) => (degree * Math.PI) / 180;
@@ -251,8 +249,8 @@ export default function Map() {
               ? require("../../../assets/pictures/bus-blue.png")
               : require("../../../assets/pictures/bus-red.png")
           }
-          rotation={rotation} 
-          anchor={{ x: 0.5, y: 0.5 }} 
+          rotation={rotation}
+          anchor={{ x: 0.5, y: 0.5 }}
         />
       );
     });
@@ -285,6 +283,31 @@ export default function Map() {
   };
 
   const StopDetails = React.memo(({ selectedStop }) => {
+    useEffect(() => {
+      if (selectedStop) {
+        axios
+          .post(`${backendURL}/api/buses/getMarkerBus`, { selectedStop })
+          .then((response) => {
+            const { expectedArrivalTime } = response.data.closestBus || {};
+            if (expectedArrivalTime) {
+              const currentTime = new Date();
+              const arrivalTime = new Date(expectedArrivalTime);
+
+              const differenceInMinutes = Math.ceil(
+                (arrivalTime - currentTime) / (1000 * 60)
+              );
+
+              setArrivalTimeInMinutes(
+                differenceInMinutes > 0 ? differenceInMinutes : 0 // Show 0 if already arrived
+              );
+            } else {
+              setArrivalTimeInMinutes(null); // No data available
+            }
+          })
+          .catch(() => setArrivalTimeInMinutes(null)); // Handle errors
+      }
+    }, [selectedStop]);
+
     if (!selectedStop) return null;
 
     return (
@@ -296,49 +319,67 @@ export default function Map() {
           },
         ]}
       >
-        <View>
-          <Text style={styles.stopDetailsName}>{selectedStop.name}</Text>
-          <Text style={styles.stopDetailsType}>
-            {selectedStop.type === "terminal" ? "Terminal" : "Stop"}
-          </Text>
-          <Text style={styles.stopDetailsDescription}>
-            {selectedStop.stopNo},{" "}
-            {!selectedStop.state ? "Tamil Nadu" : selectedStop.state}
-          </Text>
+        <View style={styles.stopDetailsLeftContainer}>
+          <View style={styles.stopDetailsLeftDetailsContainer}>
+            <Text style={styles.stopDetailsLeftDetailsName}>
+              {selectedStop.name}
+            </Text>
+            <Text style={styles.stopDetailsLeftDetailsDescription}>
+              {selectedStop.district}, {selectedStop.state}
+            </Text>
+          </View>
+          <View style={styles.stopDetailsLeftButtonsContainer}>
+            <TouchableOpacity style={styles.stopDetailsLeftButton}>
+              <Image
+                source={require("../../../assets/pictures/report.png")}
+                style={[
+                  styles.stopDetailsLeftButtonImage,
+                  { tintColor: selectedStop.type === "terminal" ? blue : red },
+                ]}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.stopDetailsLeftButton}>
+              <Image
+                source={require("../../../assets/pictures/share.png")}
+                style={[
+                  styles.stopDetailsLeftButtonImage,
+                  { tintColor: selectedStop.type === "terminal" ? blue : red },
+                ]}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.stopDetailsLeftButton}>
+              <Image
+                source={require("../../../assets/pictures/directions.png")}
+                style={[
+                  styles.stopDetailsLeftButtonImage,
+                  { tintColor: selectedStop.type === "terminal" ? blue : red },
+                ]}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
-        <TouchableOpacity style={[styles.stopDetailsButton, { right: 10 }]}>
-          <Image
-            source={require("../../../assets/pictures/directions.png")}
-            style={[
-              styles.stopDetailsButtonImg,
-              { tintColor: selectedStop.type === "terminal" ? blue : red },
-            ]}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.stopDetailsButton, { right: 60 }]}>
-          <Image
-            source={require("../../../assets/pictures/share.png")}
-            style={[
-              styles.stopDetailsButtonImg,
-              { tintColor: selectedStop.type === "terminal" ? blue : red },
-            ]}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.stopDetailsButton, { right: 110 }]}>
-          <Image
-            source={require("../../../assets/pictures/report.png")}
-            style={[
-              styles.stopDetailsButtonImg,
-              { tintColor: selectedStop.type === "terminal" ? blue : red },
-            ]}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
+        <View style={styles.stopDetailsRightContainer}>
+          <View style={styles.stopDetailsRightText}>
+            <Text style={styles.stopDetailsRightTextDetails}>Next Bus</Text>
+            <Text style={styles.stopDetailsRightTextDetails}>
+              {" "}
+              available in
+            </Text>
+          </View>
+          <View style={styles.stopDetailsRightDetails}>
+            {arrivalTimeInMinutes !== null ? (
+              <Text style={styles.stopDetailsRightTextDetails}>
+                {arrivalTimeInMinutes === 0 ? "<1" : arrivalTimeInMinutes} min
+              </Text>
+            ) : (
+              <Text style={styles.stopDetailsRightTextDetails}>No data</Text>
+            )}
+          </View>
+        </View>
       </View>
     );
   });
+
   return (
     <View style={styles.container}>
       {location && (
@@ -384,7 +425,7 @@ export default function Map() {
       {isMarkerSelected && <StopDetails selectedStop={selectedStop} />}
 
       <TouchableOpacity
-        style={[styles.locationButton, { bottom: isMarkerSelected ? 170 : 20 }]}
+        style={[styles.locationButton, { bottom: isMarkerSelected ? 190 : 20 }]}
         onPress={handlePinLocation}
       >
         <Image
@@ -560,44 +601,67 @@ const styles = StyleSheet.create({
     height: "50%",
   },
   stopDetailsContainer: {
-    height: 150,
+    height: 170,
     position: "absolute",
     width: width * 0.95,
     bottom: 10,
     borderRadius: 15,
     paddingHorizontal: 20,
     paddingVertical: 15,
+    flexDirection: "row",
   },
-  stopDetailsName: {
+  stopDetailsLeftContainer: {
+    height: "100%",
+    flex: 1,
+    flexDirection: "column",
+    justifyContent: "space-between",
+  },
+  stopDetailsRightContainer: {
+    height: "100%",
+    aspectRatio: 1,
+    flexDirection: "column",
+  },
+  stopDetailsLeftDetailsContainer: {
+    flexDirection: "column",
+  },
+  stopDetailsLeftButtonsContainer: {
+    flexDirection: "row",
+    height: "30%",
+    gap: 10,
+  },
+  stopDetailsLeftDetailsName: {
+    fontSize: width * 0.055,
+    color: thirtiary,
     fontFamily: "Montserrat-SemiBold",
-    color: "white",
-    fontSize: width * 0.06,
   },
-  stopDetailsType: {
+  stopDetailsLeftDetailsDescription: {
+    fontSize: width * 0.03,
+    color: thirtiary,
     fontFamily: "Montserrat-Regular",
-    color: "white",
-    fontSize: 13,
   },
-  stopDetailsDescription: {
-    fontFamily: "Montserrat-Regular",
-    color: "white",
-    fontSize: 13,
-  },
-  stopDetailsButton: {
-    height: 40,
-    width: 40,
-    backgroundColor: "white",
+  stopDetailsLeftButton: {
+    height: "100%",
+    aspectRatio: 1,
     borderRadius: 1000,
-    position: "absolute",
-    bottom: 10,
+    backgroundColor: "white",
     alignItems: "center",
     justifyContent: "center",
   },
-  stopDetailsButtonImg: {
-    height: "60%",
-    aspectRatio: 1,
-    opacity: 0.9,
+  stopDetailsLeftButtonImage: {
+    height: "55%",
+    width: "55%",
+    resizeMode: "contain",
   },
+  stopDetailsRightText: {
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  stopDetailsRightTextDetails: {
+    color: thirtiary,
+    fontFamily: "Montserrat-SemiBold",
+    fontSize: width * 0.03,
+  },
+
   markerCluster: {
     height: 8,
     aspectRatio: 1,

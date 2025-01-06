@@ -12,4 +12,6 @@ router.post("/update-departure", busController.updateBusDeparture);
 
 router.post("/update-progress", busController.incrementBusProgress);
 
+router.post("/getMarkerBus", busController.getMarkerBus);
+
 module.exports = router;
