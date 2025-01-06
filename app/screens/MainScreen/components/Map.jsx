@@ -22,8 +22,8 @@ import { primary, secondary, thirtiary } from "../../../utilities/color.js";
 import axios from "axios";
 const { height, width } = Dimensions.get("screen");
 
-const SOCKET_URL = "ws://172.21.0.1:5000";
-const backendURL = "http://172.21.0.1:5000";
+const SOCKET_URL = "ws://172.20.10.11:5000";
+const backendURL = "http://172.20.10.11:5000";
 
 export default function Map() {
   const [location, setLocation] = useState(null);
@@ -34,8 +34,9 @@ export default function Map() {
   const [nearbyStops, setNearbyStops] = useState([]);
   const [selectedStop, setSelectedStop] = useState(null);
   const [isMarkerSelected, setIsMarkerSelected] = useState(false);
-  const [bus, setBus] = useState([]);
   const [arrivalTimeInMinutes, setArrivalTimeInMinutes] = useState(null);
+    const [arrivalStatus, setArrivalStatus] = useState(null);
+  const [bus, setBus] = useState([]);
 
   const blue = "#034694";
   const red = "#B22222";
@@ -283,20 +284,28 @@ export default function Map() {
   };
 
   const StopDetails = React.memo(({ selectedStop }) => {
+  
     useEffect(() => {
       if (selectedStop) {
         axios
           .post(`${backendURL}/api/buses/getMarkerBus`, { selectedStop })
           .then((response) => {
+            console.log(response.data);
+  
             const { expectedArrivalTime } = response.data.closestBus || {};
+            const status = response.data.arrivalStatus;
+  
+            // Set arrival status
+            setArrivalStatus(status);
+  
             if (expectedArrivalTime) {
               const currentTime = new Date();
               const arrivalTime = new Date(expectedArrivalTime);
-
+  
               const differenceInMinutes = Math.ceil(
                 (arrivalTime - currentTime) / (1000 * 60)
               );
-
+  
               setArrivalTimeInMinutes(
                 differenceInMinutes > 0 ? differenceInMinutes : 0 // Show 0 if already arrived
               );
@@ -304,12 +313,15 @@ export default function Map() {
               setArrivalTimeInMinutes(null); // No data available
             }
           })
-          .catch(() => setArrivalTimeInMinutes(null)); // Handle errors
+          .catch(() => {
+            setArrivalTimeInMinutes(null); // Handle errors
+            setArrivalStatus(null); // Clear status in case of an error
+          });
       }
     }, [selectedStop]);
-
+  
     if (!selectedStop) return null;
-
+  
     return (
       <View
         style={[
@@ -375,10 +387,18 @@ export default function Map() {
               <Text style={styles.stopDetailsRightTextDetails}>No data</Text>
             )}
           </View>
+          <View style={styles.stopDetailsRightStatus}>
+            {arrivalStatus && (
+              <Text style={styles.stopDetailsRightStatusText}>
+                Status: {arrivalStatus}
+              </Text>
+            )}
+          </View>
         </View>
       </View>
     );
   });
+  
 
   return (
     <View style={styles.container}>
@@ -399,6 +419,7 @@ export default function Map() {
           onPress={() => {
             setSelectedStop(null);
             setIsMarkerSelected(false);
+            setArrivalTimeInMinutes(null);
           }}
           renderCluster={(cluster) => {
             const { id, geometry, onPress } = cluster;

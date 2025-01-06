@@ -242,7 +242,10 @@ const getMarkerBus = async (req, res) => {
     });
 
     if (!buses || buses.length === 0) {
-      return res.status(404).json({ error: "No buses found for the selected routes" });
+      return res.status(200).json({ 
+        message: "No buses found for the selected routes", 
+        arrivalStatus: "NoBus" 
+      });
     }
 
     // Find the closest bus based on progress
@@ -268,7 +271,10 @@ const getMarkerBus = async (req, res) => {
     }
 
     if (!closestBus) {
-      return res.status(404).json({ error: "No nearby buses found for the selected stop" });
+      return res.status(200).json({ 
+        message: "No nearby buses found for the selected stop", 
+        arrivalStatus: "NoBus" 
+      });
     }
 
     // Calculate expected arrival time
@@ -276,24 +282,32 @@ const getMarkerBus = async (req, res) => {
     const busStopDetails = currentRoute.busStops.find(stop => stop.busStopId === stopNo);
 
     const lastProgress = closestBus.busProgress[closestBus.busProgress.length - 1];
-    const lastProgressTime = lastProgress.progressTime;
+    const lastProgressTime = new Date(lastProgress.progressTime);
+    const currentTime = new Date();
 
-    let expectedArrivalTime = new Date(lastProgressTime);
+    // Use current time if last progress time is in the past
+    let expectedArrivalTime = lastProgressTime > currentTime ? lastProgressTime : currentTime;
 
     // Go through the upcoming bus stops (after the current progress of the bus)
-    let nextStopFound = false;
     for (let i = lastProgress.progress; i < currentRoute.busStops.length; i++) {
       const busStop = currentRoute.busStops[i];
-      if (busStop.busStopId === stopNo) {
-        nextStopFound = true;
-        break;
-      }
-
-      // Calculate arrival time for the next stop
-      const arrivalTimeAtStop = busStop.ArrivalTime * 60000; // Convert ArrivalTime to milliseconds
+      const arrivalTimeAtStop = busStop.ArrivalTime * 60000; // Convert to milliseconds
       expectedArrivalTime = new Date(expectedArrivalTime.getTime() + arrivalTimeAtStop);
+
+      if (busStop.busStopId === stopNo) {
+        break; // Stop calculation when reaching the selected stop
+      }
     }
-    console.log(expectedArrivalTime)
+
+    // Determine arrival status
+    let arrivalStatus = "onTime"; // Default status
+    if (expectedArrivalTime > currentTime) {
+      const delay = expectedArrivalTime - currentTime; // Time difference in milliseconds
+      if (delay > 5 * 60000) { // If delay is more than 5 minutes
+        arrivalStatus = "Delay";
+      }
+    }
+
     return res.status(200).json({
       message: "Closest bus found successfully",
       closestBus: {
@@ -302,12 +316,14 @@ const getMarkerBus = async (req, res) => {
         currentCoordinates: closestBus.busCoordinates,
         expectedArrivalTime,
       },
+      arrivalStatus,
     });
   } catch (err) {
     console.error("Error fetching nearby buses:", err.message);
     return res.status(500).json({ error: "Failed to fetch nearby buses", message: err.message });
   }
 };
+
 
 
 module.exports = {
