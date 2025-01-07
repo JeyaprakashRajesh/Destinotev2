@@ -22,8 +22,8 @@ import { primary, secondary, thirtiary } from "../../../utilities/color.js";
 import axios from "axios";
 const { height, width } = Dimensions.get("screen");
 
-const SOCKET_URL = "ws://172.20.10.11:5000";
-const backendURL = "http://172.20.10.11:5000";
+const SOCKET_URL = "ws://192.168.1.3:5000";
+const backendURL = "http://192.168.1.3:5000";
 
 export default function Map() {
   const [location, setLocation] = useState(null);
@@ -284,9 +284,11 @@ export default function Map() {
   };
 
   const StopDetails = React.memo(({ selectedStop }) => {
+    const [loadingBusData, setLoadingBusData] = useState(false);
   
     useEffect(() => {
       if (selectedStop) {
+        setLoadingBusData(true); // Start loading
         axios
           .post(`${backendURL}/api/buses/getMarkerBus`, { selectedStop })
           .then((response) => {
@@ -316,6 +318,9 @@ export default function Map() {
           .catch(() => {
             setArrivalTimeInMinutes(null); // Handle errors
             setArrivalStatus(null); // Clear status in case of an error
+          })
+          .finally(() => {
+            setLoadingBusData(false); // Stop loading
           });
       }
     }, [selectedStop]);
@@ -373,31 +378,35 @@ export default function Map() {
         <View style={styles.stopDetailsRightContainer}>
           <View style={styles.stopDetailsRightText}>
             <Text style={styles.stopDetailsRightTextDetails}>Next Bus</Text>
-            <Text style={styles.stopDetailsRightTextDetails}>
-              {" "}
-              available in
-            </Text>
+            <Text style={styles.stopDetailsRightTextDetails}> available in</Text>
           </View>
           <View style={styles.stopDetailsRightDetails}>
-            {arrivalTimeInMinutes !== null ? (
-              <Text style={styles.stopDetailsRightTextDetails}>
-                {arrivalTimeInMinutes === 0 ? "<1" : arrivalTimeInMinutes} min
+            {loadingBusData ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : arrivalTimeInMinutes !== null ? (
+              <>
+              <Text style={styles.stopDetailsRightETAText}>
+                {arrivalTimeInMinutes === 0 ? "<1" : arrivalTimeInMinutes}<Text style={{fontSize : width * 0.04}}> min</Text>
               </Text>
+              {arrivalStatus && (
+              <Text style={styles.stopDetailsRightStatusText}>
+                {arrivalStatus}
+              </Text>
+            )}
+              </>
+              
             ) : (
-              <Text style={styles.stopDetailsRightTextDetails}>No data</Text>
+              <Text style={styles.stopDetailsRightTextDetails}>Nil</Text>
             )}
           </View>
           <View style={styles.stopDetailsRightStatus}>
-            {arrivalStatus && (
-              <Text style={styles.stopDetailsRightStatusText}>
-                Status: {arrivalStatus}
-              </Text>
-            )}
+            
           </View>
         </View>
       </View>
     );
   });
+  
   
 
   return (
@@ -682,7 +691,20 @@ const styles = StyleSheet.create({
     fontFamily: "Montserrat-SemiBold",
     fontSize: width * 0.03,
   },
-
+  stopDetailsRightDetails : {
+    width : "100%",
+    flex : 1,
+    alignItems : "center",
+    justifyContent : "center"
+  },
+  stopDetailsRightETAText : {
+    color : thirtiary,
+    fontFamily : "Montserrat-Regular",
+    fontSize : width * 0.06
+  },
+  stopDetailsRightStatusText : {
+    
+  },
   markerCluster: {
     height: 8,
     aspectRatio: 1,
