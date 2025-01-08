@@ -22,8 +22,8 @@ import { primary, secondary, thirtiary } from "../../../utilities/color.js";
 import axios from "axios";
 const { height, width } = Dimensions.get("screen");
 
-const SOCKET_URL = "ws://192.168.1.3:5000";
-const backendURL = "http://192.168.1.3:5000";
+const SOCKET_URL = "ws://172.21.0.1:5000";
+const backendURL = "http://172.21.0.1:5000";
 
 export default function Map() {
   const [location, setLocation] = useState(null);
@@ -75,6 +75,11 @@ export default function Map() {
       socket.current.disconnect();
     };
   }, []);
+  useEffect(() => {
+    if(selectedStop === null) {
+      setArrivalTimeInMinutes(null);
+    }
+  },[selectedStop])
 
   if (!fontsLoaded) {
     return (
@@ -288,7 +293,9 @@ export default function Map() {
   
     useEffect(() => {
       if (selectedStop) {
-        setLoadingBusData(true); // Start loading
+        if(arrivalTimeInMinutes === null){
+          setLoadingBusData(true); 
+        }// Start loading
         axios
           .post(`${backendURL}/api/buses/getMarkerBus`, { selectedStop })
           .then((response) => {
@@ -307,7 +314,7 @@ export default function Map() {
               const differenceInMinutes = Math.ceil(
                 (arrivalTime - currentTime) / (1000 * 60)
               );
-  
+              
               setArrivalTimeInMinutes(
                 differenceInMinutes > 0 ? differenceInMinutes : 0 // Show 0 if already arrived
               );
@@ -428,10 +435,9 @@ export default function Map() {
           onPress={() => {
             setSelectedStop(null);
             setIsMarkerSelected(false);
-            setArrivalTimeInMinutes(null);
           }}
           renderCluster={(cluster) => {
-            const { id, geometry, onPress } = cluster;
+            const { id, geometry } = cluster;
             return (
               <Marker
                 key={`cluster-${id}`}
@@ -439,12 +445,15 @@ export default function Map() {
                   longitude: geometry.coordinates[0],
                   latitude: geometry.coordinates[1],
                 }}
-                onPress={onPress}
+                // Disable the callout
+                calloutAnchor={{ x: 0, y: 0 }} // Prevents the callout from appearing
+                onPress={(e) => e.stopPropagation()} // Prevent default behavior on press
               >
                 <View style={styles.markerCluster}></View>
               </Marker>
             );
           }}
+          
           maxZoomLevel={20}
           minZoomLevel={2}
         >
@@ -461,7 +470,7 @@ export default function Map() {
         <Image
           source={require("../../../assets/pictures/location.png")}
           resizeMode="contain"
-          style={[
+          style={[ 
             styles.locaitonImg,
             { tintColor: pinLocation ? primary : secondary },
           ]}
@@ -699,11 +708,16 @@ const styles = StyleSheet.create({
   },
   stopDetailsRightETAText : {
     color : thirtiary,
-    fontFamily : "Montserrat-Regular",
-    fontSize : width * 0.06
+    fontFamily : "Montserrat-SemiBold",
+    fontSize : width * 0.06,
+    position : "absolute",
+    bottom : "40%"
   },
   stopDetailsRightStatusText : {
-    
+    color : thirtiary,
+    fontFamily : 'Montserrat-SemiBold',
+    position : "absolute",
+    bottom : "5%"
   },
   markerCluster: {
     height: 8,
