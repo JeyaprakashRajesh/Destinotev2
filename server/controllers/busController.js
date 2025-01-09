@@ -218,7 +218,6 @@ const getMarkerBus = async (req, res) => {
 
     const { coordinates, stopNo } = selectedStop;
 
-    // Find routes that include the selected bus stop
     const routes = await Route.find({
       "busStops.busStopId": stopNo,
     });
@@ -229,10 +228,8 @@ const getMarkerBus = async (req, res) => {
         .json({ error: "No routes found for the selected bus stop" });
     }
 
-    // Get route numbers from the routes
     const routeNumbers = routes.map((route) => route.RouteNo);
 
-    // Find buses that are currently running on these routes
     const buses = await Bus.find({
       currentRouteNo: { $in: routeNumbers },
     });
@@ -244,7 +241,6 @@ const getMarkerBus = async (req, res) => {
       });
     }
 
-    // Find the closest bus based on progress
     let closestBus = null;
     let minimumDistance = Infinity;
 
@@ -263,7 +259,6 @@ const getMarkerBus = async (req, res) => {
       );
       if (busStopIndex === -1) continue;
 
-      // Calculate distance (progress difference)
       const distance = Math.abs(busStopIndex - lastProgress.progress);
 
       if (distance < minimumDistance) {
@@ -273,53 +268,47 @@ const getMarkerBus = async (req, res) => {
     }
 
     if (!closestBus) {
-      return res.status(200).json({ 
+      return res.status(200).json({
         message: "No nearby buses found for the selected stop",
         arrivalStatus: "NoBus",
       });
     }
 
-    // Calculate expected arrival time
     const currentRoute = routes.find(
       (route) => route.RouteNo === closestBus.currentRouteNo
-    );
-    const busStopDetails = currentRoute.busStops.find(
-      (stop) => stop.busStopId === stopNo
     );
 
     const lastProgress =
       closestBus.busProgress[closestBus.busProgress.length - 1];
     const lastProgressTime = new Date(lastProgress.progressTime);
     const currentTime = new Date();
-    // Use current time if last progress time is in the past
+
     let expectedArrivalTime =
       lastProgressTime > currentTime ? lastProgressTime : currentTime;
 
-    // Go through the upcoming bus stops (after the current progress of the bus)
     for (let i = lastProgress.progress; i < currentRoute.busStops.length; i++) {
       const busStop = currentRoute.busStops[i];
-      const arrivalTimeAtStop = busStop.ArrivalTime * 60000; // Convert to milliseconds
+      const arrivalTimeAtStop = busStop.ArrivalTime * 60000;
       expectedArrivalTime = new Date(
         expectedArrivalTime.getTime() + arrivalTimeAtStop
       );
 
       if (busStop.busStopId === stopNo) {
-        break; // Stop calculation when reaching the selected stop
-      } 
+        break;
+      }
     }
 
-    // Determine arrival status
-    let arrivalStatus = "onTime"; // Default status
-    if (expectedArrivalTime > currentTime) {
-      const delay = expectedArrivalTime - currentTime; // Time difference in milliseconds
-      console.log(currentTime,lastProgressTime,delay)
-      if (delay > 5 * 60000) {
-        // If delay is more than 5 minutes
-        arrivalStatus = "Delay";
-      } 
+    // const delay = expectedArrivalTime.getTime() - currentTime.getTime();
+    // console.log(expectedArrivalTime.getTime(),currentTime.getTime(),delay)
+    let arrivalStatus = "onTime";
+    // if (delay > 5 * 60000) {
+    //   arrivalStatus = "Delay";
+    // }
+    if(lastProgressTime < currentTime) {
+      arrivalStatus = "Delay"
     }
 
-    return res.status(200).json({ 
+    return res.status(200).json({
       message: "Closest bus found successfully",
       closestBus: {
         VehicleNo: closestBus.VehicleNo,
@@ -336,6 +325,7 @@ const getMarkerBus = async (req, res) => {
       .json({ error: "Failed to fetch nearby buses", message: err.message });
   }
 };
+
 
 module.exports = {
   addBus,

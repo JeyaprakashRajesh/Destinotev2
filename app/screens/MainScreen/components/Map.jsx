@@ -22,8 +22,8 @@ import { primary, secondary, thirtiary } from "../../../utilities/color.js";
 import axios from "axios";
 const { height, width } = Dimensions.get("screen");
 
-const SOCKET_URL = "ws://10.57.1.27:5000";
-const backendURL = "http://10.57.1.27:5000";
+const SOCKET_URL = "ws://172.21.0.1:5000";
+const backendURL = "http://172.21.0.1:5000";
 
 export default function Map() {
   const [location, setLocation] = useState(null);
