@@ -291,7 +291,6 @@ const getMarkerBus = async (req, res) => {
       closestBus.busProgress[closestBus.busProgress.length - 1];
     const lastProgressTime = new Date(lastProgress.progressTime);
     const currentTime = new Date();
-    console.log(currentTime);
     // Use current time if last progress time is in the past
     let expectedArrivalTime =
       lastProgressTime > currentTime ? lastProgressTime : currentTime;
@@ -313,6 +312,7 @@ const getMarkerBus = async (req, res) => {
     let arrivalStatus = "onTime"; // Default status
     if (expectedArrivalTime > currentTime) {
       const delay = expectedArrivalTime - currentTime; // Time difference in milliseconds
+      console.log(currentTime,lastProgressTime,delay)
       if (delay > 5 * 60000) {
         // If delay is more than 5 minutes
         arrivalStatus = "Delay";

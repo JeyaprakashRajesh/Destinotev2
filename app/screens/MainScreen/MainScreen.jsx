@@ -30,7 +30,8 @@ export default function MainScreen() {
           headerShown: false,
           tabBarStyle: {
             height: height * 0.08,
-            backgroundColor: route.name === "Pay" ? secondary : "white",
+            borderColor : "transparent",
+            borderWidth:0
           },
           tabBarButton: (props) => (
             <TouchableWithoutFeedback {...props}>
@@ -66,7 +67,7 @@ export default function MainScreen() {
                   style={{
                     height: "35%",
                     aspectRatio: 1,
-                    tintColor: focused ? primary : route === "Pay" ? thirtiary : secondary,
+                    tintColor: focused ? primary : secondary,
                   }}
                   resizeMode="contain"
                 />
@@ -104,14 +105,14 @@ export default function MainScreen() {
                   style={{
                     height: "35%",
                     aspectRatio: 1,
-                    tintColor: focused ? primary : route === "Pay" ? thirtiary : secondary,
+                    tintColor: focused ? primary :  secondary,
                   }}
                   resizeMode="contain"
                 />
                 {focused ? (
                   <Text
                     style={{
-                      color: thirtiary,
+                      color: secondary,
                       fontFamily: "Poppins-Light",
                       fontSize: height * 0.013,
                     }}
@@ -143,7 +144,7 @@ export default function MainScreen() {
                   style={{
                     height: "35%",
                     aspectRatio: 1,
-                    tintColor: focused ? primary : route === "Pay" ? thirtiary : secondary,
+                    tintColor: focused ? primary : secondary
                   }}
                   resizeMode="contain"
                 />

@@ -10,7 +10,7 @@ import {
   Platform,
   Animated,
 } from "react-native";
-import { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import { Marker, PROVIDER_GOOGLE , PROVIDER_DEFAULT } from "react-native-maps";
 
 import MapViewCluster from "react-native-map-clustering";
 import * as Location from "expo-location";
@@ -22,8 +22,8 @@ import { primary, secondary, thirtiary } from "../../../utilities/color.js";
 import axios from "axios";
 const { height, width } = Dimensions.get("screen");
 
-const SOCKET_URL = "ws://172.21.0.1:5000";
-const backendURL = "http://172.21.0.1:5000";
+const SOCKET_URL = "ws://10.57.1.27:5000";
+const backendURL = "http://10.57.1.27:5000";
 
 export default function Map() {
   const [location, setLocation] = useState(null);
@@ -35,7 +35,7 @@ export default function Map() {
   const [selectedStop, setSelectedStop] = useState(null);
   const [isMarkerSelected, setIsMarkerSelected] = useState(false);
   const [arrivalTimeInMinutes, setArrivalTimeInMinutes] = useState(null);
-    const [arrivalStatus, setArrivalStatus] = useState(null);
+  const [arrivalStatus, setArrivalStatus] = useState(null);
   const [bus, setBus] = useState([]);
 
   const blue = "#034694";
@@ -80,7 +80,8 @@ export default function Map() {
       setArrivalTimeInMinutes(null);
     }
   },[selectedStop])
-
+  useEffect(()=> {
+  } , [isMarkerSelected])
   if (!fontsLoaded) {
     return (
       <View style={styles.container}>
@@ -191,6 +192,7 @@ export default function Map() {
   const handleRegionChange = throttledHandleRegionChange;
 
   const handleMarkerPress = (stop) => {
+    console.log("handleMarkerPress")
     if (selectedStop && selectedStop.id === stop.id) {
       setSelectedStop(null);
       setIsMarkerSelected(false);
@@ -290,47 +292,44 @@ export default function Map() {
 
   const StopDetails = React.memo(({ selectedStop }) => {
     const [loadingBusData, setLoadingBusData] = useState(false);
-  
     useEffect(() => {
       if (selectedStop) {
-        if(arrivalTimeInMinutes === null){
-          setLoadingBusData(true); 
-        }// Start loading
+        if (arrivalTimeInMinutes === null) {
+          setLoadingBusData(true);
+        }
         axios
           .post(`${backendURL}/api/buses/getMarkerBus`, { selectedStop })
           .then((response) => {
-            console.log(response.data);
-  
             const { expectedArrivalTime } = response.data.closestBus || {};
             const status = response.data.arrivalStatus;
-  
-            // Set arrival status
+    
             setArrivalStatus(status);
-  
+    
             if (expectedArrivalTime) {
               const currentTime = new Date();
               const arrivalTime = new Date(expectedArrivalTime);
-  
+    
               const differenceInMinutes = Math.ceil(
                 (arrivalTime - currentTime) / (1000 * 60)
               );
-              
+    
               setArrivalTimeInMinutes(
-                differenceInMinutes > 0 ? differenceInMinutes : 0 // Show 0 if already arrived
+                differenceInMinutes > 0 ? differenceInMinutes : 0
               );
             } else {
-              setArrivalTimeInMinutes(null); // No data available
+              setArrivalTimeInMinutes(null);
             }
           })
           .catch(() => {
-            setArrivalTimeInMinutes(null); // Handle errors
-            setArrivalStatus(null); // Clear status in case of an error
+            setArrivalTimeInMinutes(null);
+            setArrivalStatus(null);
           })
           .finally(() => {
-            setLoadingBusData(false); // Stop loading
+            setLoadingBusData(false);
           });
       }
     }, [selectedStop]);
+    
   
     if (!selectedStop) return null;
   
@@ -412,6 +411,8 @@ export default function Map() {
         </View>
       </View>
     );
+  }, (prevProps, nextProps) => {
+    return prevProps.selectedStop === nextProps.selectedStop;
   });
   
   
@@ -428,7 +429,7 @@ export default function Map() {
           onPanDrag={handleRegionChange}
           showsMyLocationButton={false}
           customMapStyle={customMapStyle}
-          provider={PROVIDER_GOOGLE}
+          provider={Platform.OS === "ios" ? PROVIDER_DEFAULT : PROVIDER_GOOGLE}
           mapType={isSatellite ? "satellite" : "standard"}
           radius={8}
           rotateEnabled={false}
