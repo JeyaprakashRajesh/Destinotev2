@@ -1,6 +1,6 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import Map from "./Map";
+import Map from "./mapComponents/Map";
 
 const Stack = createNativeStackNavigator();
 

@@ -10,20 +10,29 @@ import {
   Platform,
   Animated,
 } from "react-native";
-import { Marker, PROVIDER_GOOGLE , PROVIDER_DEFAULT } from "react-native-maps";
+import {
+  Marker,
+  PROVIDER_GOOGLE,
+  PROVIDER_DEFAULT,
+  Polyline,
+} from "react-native-maps";
 
 import MapViewCluster from "react-native-map-clustering";
 import * as Location from "expo-location";
 import io from "socket.io-client";
-import useCustomFonts from "../../../utilities/loadFonts.js";
+import useCustomFonts from "../../../../utilities/loadFonts.js";
 import { debounce, throttle } from "lodash";
 
-import { primary, secondary, thirtiary } from "../../../utilities/color.js";
+import RenderMarkers from "./renderMarkers.jsx";
+import RenderBusMarkers from "./RenderBusMarkers.jsx";
+import StopDetails from "./StopDetails.jsx";
+
+import { primary, secondary, thirtiary } from "../../../../utilities/color.js";
 import axios from "axios";
 const { height, width } = Dimensions.get("screen");
 
-const SOCKET_URL = "ws://172.21.0.1:5000";
-const backendURL = "http://172.21.0.1:5000";
+const SOCKET_URL = "ws://192.168.1.7:5000";
+const backendURL = "http://192.168.1.7:5000";
 
 export default function Map() {
   const [location, setLocation] = useState(null);
@@ -34,8 +43,9 @@ export default function Map() {
   const [nearbyStops, setNearbyStops] = useState([]);
   const [selectedStop, setSelectedStop] = useState(null);
   const [isMarkerSelected, setIsMarkerSelected] = useState(false);
-  const [arrivalTimeInMinutes, setArrivalTimeInMinutes] = useState(null);
   const [arrivalStatus, setArrivalStatus] = useState(null);
+  const [selectedBus, setSelectedBus] = useState(null);
+  const [stopCoordinates, setStopCoordinates] = useState(null);
   const [bus, setBus] = useState([]);
 
   const blue = "#034694";
@@ -75,13 +85,26 @@ export default function Map() {
       socket.current.disconnect();
     };
   }, []);
+  useEffect(() => {}, [isMarkerSelected]);
   useEffect(() => {
-    if(selectedStop === null) {
-      setArrivalTimeInMinutes(null);
+    if (mapRef.current && selectedBus && stopCoordinates) {
+      mapRef.current.fitToCoordinates(
+        [
+          { latitude: stopCoordinates[1], longitude: stopCoordinates[0] },
+          { latitude: selectedBus[1], longitude: selectedBus[0] },
+        ],
+        {
+          edgePadding: {
+            top: height * 0.2,
+            right: 50,
+            bottom: height * 0.2,
+            left: 50,
+          },
+          animated: true,
+        }
+      );
     }
-  },[selectedStop])
-  useEffect(()=> {
-  } , [isMarkerSelected])
+  }, [selectedBus, stopCoordinates]);
   if (!fontsLoaded) {
     return (
       <View style={styles.container}>
@@ -192,7 +215,7 @@ export default function Map() {
   const handleRegionChange = throttledHandleRegionChange;
 
   const handleMarkerPress = (stop) => {
-    console.log("handleMarkerPress")
+    console.log("handleMarkerPress");
     if (selectedStop && selectedStop.id === stop.id) {
       setSelectedStop(null);
       setIsMarkerSelected(false);
@@ -212,210 +235,6 @@ export default function Map() {
       }
     }
   };
-  const renderBusMarkers = () => {
-    const calculateBearing = (prev, current) => {
-      if (!prev || !current) return 0;
-
-      const toRadians = (degree) => (degree * Math.PI) / 180;
-      const toDegrees = (radian) => (radian * 180) / Math.PI;
-
-      const lat1 = toRadians(prev[1]);
-      const lon1 = toRadians(prev[0]);
-      const lat2 = toRadians(current[1]);
-      const lon2 = toRadians(current[0]);
-
-      const dLon = lon2 - lon1;
-
-      const x = Math.sin(dLon) * Math.cos(lat2);
-      const y =
-        Math.cos(lat1) * Math.sin(lat2) -
-        Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
-
-      let bearing = toDegrees(Math.atan2(x, y));
-      return (bearing + 360) % 360;
-    };
-
-    return bus.map((bus) => {
-      const currentCoordinates = {
-        latitude: bus.busCoordinates[1],
-        longitude: bus.busCoordinates[0],
-      };
-
-      const rotation = calculateBearing(
-        bus.previousCoordinates,
-        bus.busCoordinates
-      );
-
-      return (
-        <Marker
-          key={bus.VehicleNo}
-          coordinate={currentCoordinates}
-          cluster={false}
-          stopPropagation={true}
-          icon={
-            bus.busType === "State Bus"
-              ? require("../../../assets/pictures/bus-blue.png")
-              : require("../../../assets/pictures/bus-red.png")
-          }
-          rotation={rotation}
-          anchor={{ x: 0.5, y: 0.5 }}
-        />
-      );
-    });
-  };
-
-  const renderMarkers = () => {
-    return nearbyStops.map((stop, index) => {
-      if (stop.type !== "bus") {
-        return (
-          <Marker
-            key={`${index}`}
-            coordinate={{
-              latitude: stop.coordinates[1],
-              longitude: stop.coordinates[0],
-            }}
-            cluster={stop.type === "stop" ? true : false}
-            onPress={() => handleMarkerPress(stop)}
-            stopPropagation={true}
-            icon={getMarkerIcon(stop)}
-          />
-        );
-      }
-      return null;
-    });
-  };
-  const getMarkerIcon = (stop) => {
-    return stop.type === "stop"
-      ? require("../../../assets/pictures/farMarkerRed.png")
-      : require("../../../assets/pictures/farMarkerBlue.png");
-  };
-
-  const StopDetails = React.memo(({ selectedStop }) => {
-    const [loadingBusData, setLoadingBusData] = useState(false);
-    useEffect(() => {
-      if (selectedStop) {
-        if (arrivalTimeInMinutes === null) {
-          setLoadingBusData(true);
-        }
-        axios
-          .post(`${backendURL}/api/buses/getMarkerBus`, { selectedStop })
-          .then((response) => {
-            const { expectedArrivalTime } = response.data.closestBus || {};
-            const status = response.data.arrivalStatus;
-    
-            setArrivalStatus(status);
-    
-            if (expectedArrivalTime) {
-              const currentTime = new Date();
-              const arrivalTime = new Date(expectedArrivalTime);
-    
-              const differenceInMinutes = Math.ceil(
-                (arrivalTime - currentTime) / (1000 * 60)
-              );
-    
-              setArrivalTimeInMinutes(
-                differenceInMinutes > 0 ? differenceInMinutes : 0
-              );
-            } else {
-              setArrivalTimeInMinutes(null);
-            }
-          })
-          .catch(() => {
-            setArrivalTimeInMinutes(null);
-            setArrivalStatus(null);
-          })
-          .finally(() => {
-            setLoadingBusData(false);
-          });
-      }
-    }, [selectedStop]);
-    
-  
-    if (!selectedStop) return null;
-  
-    return (
-      <View
-        style={[
-          styles.stopDetailsContainer,
-          {
-            backgroundColor: selectedStop.type === "terminal" ? blue : red,
-          },
-        ]}
-      >
-        <View style={styles.stopDetailsLeftContainer}>
-          <View style={styles.stopDetailsLeftDetailsContainer}>
-            <Text style={styles.stopDetailsLeftDetailsName}>
-              {selectedStop.name}
-            </Text>
-            <Text style={styles.stopDetailsLeftDetailsDescription}>
-              {selectedStop.district}, {selectedStop.state}
-            </Text>
-          </View>
-          <View style={styles.stopDetailsLeftButtonsContainer}>
-            <TouchableOpacity style={styles.stopDetailsLeftButton}>
-              <Image
-                source={require("../../../assets/pictures/report.png")}
-                style={[
-                  styles.stopDetailsLeftButtonImage,
-                  { tintColor: selectedStop.type === "terminal" ? blue : red },
-                ]}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.stopDetailsLeftButton}>
-              <Image
-                source={require("../../../assets/pictures/share.png")}
-                style={[
-                  styles.stopDetailsLeftButtonImage,
-                  { tintColor: selectedStop.type === "terminal" ? blue : red },
-                ]}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.stopDetailsLeftButton}>
-              <Image
-                source={require("../../../assets/pictures/directions.png")}
-                style={[
-                  styles.stopDetailsLeftButtonImage,
-                  { tintColor: selectedStop.type === "terminal" ? blue : red },
-                ]}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View style={styles.stopDetailsRightContainer}>
-          <View style={styles.stopDetailsRightText}>
-            <Text style={styles.stopDetailsRightTextDetails}>Next Bus</Text>
-            <Text style={styles.stopDetailsRightTextDetails}> available in</Text>
-          </View>
-          <View style={styles.stopDetailsRightDetails}>
-            {loadingBusData ? (
-              <ActivityIndicator size="small" color="white" />
-            ) : arrivalTimeInMinutes !== null ? (
-              <>
-              <Text style={styles.stopDetailsRightETAText}>
-                {arrivalTimeInMinutes === 0 ? "<1" : arrivalTimeInMinutes}<Text style={{fontSize : width * 0.04}}> min</Text>
-              </Text>
-              {arrivalStatus && (
-              <Text style={styles.stopDetailsRightStatusText}>
-                {arrivalStatus}
-              </Text>
-            )}
-              </>
-              
-            ) : (
-              <Text style={styles.stopDetailsRightTextDetails}>Nil</Text>
-            )}
-          </View>
-          <View style={styles.stopDetailsRightStatus}>
-            
-          </View>
-        </View>
-      </View>
-    );
-  }, (prevProps, nextProps) => {
-    return prevProps.selectedStop === nextProps.selectedStop;
-  });
-  
-  
 
   return (
     <View style={styles.container}>
@@ -436,6 +255,8 @@ export default function Map() {
           onPress={() => {
             setSelectedStop(null);
             setIsMarkerSelected(false);
+            setSelectedBus(null);
+            setSelectedStop(null);
           }}
           renderCluster={(cluster) => {
             const { id, geometry } = cluster;
@@ -454,24 +275,49 @@ export default function Map() {
               </Marker>
             );
           }}
-          
           maxZoomLevel={20}
           minZoomLevel={2}
         >
-          {renderMarkers()}
-          {renderBusMarkers()}
+          <RenderMarkers
+            nearbyStops={nearbyStops}
+            handleMarkerPress={handleMarkerPress}
+          />
+          <RenderBusMarkers bus={bus} />
+          {isMarkerSelected && selectedBus && stopCoordinates && (
+          <Polyline
+          coordinates={[
+            { latitude: stopCoordinates[1], longitude: stopCoordinates[0] },
+            { latitude: selectedBus[1], longitude: selectedBus[0] },
+          ]}
+          strokeColor={secondary}
+          strokeWidth={4}
+          lineDashPattern={[10,3]}
+        />
+        
+        
+         
+          )}
         </MapViewCluster>
       )}
-      {isMarkerSelected && <StopDetails selectedStop={selectedStop} />}
+      {isMarkerSelected && (
+        <StopDetails
+          selectedStop={selectedStop}
+          arrivalStatus={arrivalStatus}
+          setArrivalStatus={setArrivalStatus}
+          backendURL={backendURL}
+          setSelectedBus={setSelectedBus}
+          setStopCoordinates={setStopCoordinates}
+        />
+      )}
 
       <TouchableOpacity
         style={[styles.locationButton, { bottom: isMarkerSelected ? 190 : 20 }]}
         onPress={handlePinLocation}
       >
         <Image
-          source={require("../../../assets/pictures/location.png")}
+          source={require("../../../../assets/pictures/location.png")}
           resizeMode="contain"
-          style={[ 
+          style={[
             styles.locaitonImg,
             { tintColor: pinLocation ? primary : secondary },
           ]}
@@ -482,21 +328,21 @@ export default function Map() {
         <View style={styles.leftContainer}>
           <TouchableOpacity style={styles.leftContainerButton}>
             <Image
-              source={require("../../../assets/pictures/profile.png")}
+              source={require("../../../../assets/pictures/profile.png")}
               style={styles.leftContainerButtonImg}
               resizeMode="contain"
             />
           </TouchableOpacity>
           <TouchableOpacity style={styles.leftContainerButton}>
             <Image
-              source={require("../../../assets/pictures/favourite.png")}
+              source={require("../../../../assets/pictures/favourite.png")}
               style={styles.leftContainerButtonImg}
               resizeMode="contain"
             />
           </TouchableOpacity>
           <TouchableOpacity style={styles.leftContainerButton}>
             <Image
-              source={require("../../../assets/pictures/busStop.png")}
+              source={require("../../../../assets/pictures/busStop.png")}
               style={styles.leftContainerButtonImg}
               resizeMode="contain"
             />
@@ -505,7 +351,7 @@ export default function Map() {
         <TouchableOpacity style={styles.rightContainer}>
           <View style={styles.rightInnerContainer}>
             <Image
-              source={require("../../../assets/pictures/search.png")}
+              source={require("../../../../assets/pictures/search.png")}
               resizeMode="contain"
               style={[styles.searchImg, { tintColor: "#00ADB5" }]}
             />
@@ -522,7 +368,7 @@ export default function Map() {
           onPress={() => setIsSatellite(!isSatellite)}
         >
           <Image
-            source={require("../../../assets/pictures/layers.png")}
+            source={require("../../../../assets/pictures/layers.png")}
             style={[
               styles.rightButtonImg,
               { tintColor: isSatellite ? "white" : secondary },
@@ -640,86 +486,7 @@ const styles = StyleSheet.create({
   rightButtonImg: {
     height: "50%",
   },
-  stopDetailsContainer: {
-    height: 170,
-    position: "absolute",
-    width: width * 0.95,
-    bottom: 10,
-    borderRadius: 15,
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    flexDirection: "row",
-  },
-  stopDetailsLeftContainer: {
-    height: "100%",
-    flex: 1,
-    flexDirection: "column",
-    justifyContent: "space-between",
-  },
-  stopDetailsRightContainer: {
-    height: "100%",
-    aspectRatio: 1,
-    flexDirection: "column",
-  },
-  stopDetailsLeftDetailsContainer: {
-    flexDirection: "column",
-  },
-  stopDetailsLeftButtonsContainer: {
-    flexDirection: "row",
-    height: "30%",
-    gap: 10,
-  },
-  stopDetailsLeftDetailsName: {
-    fontSize: width * 0.055,
-    color: thirtiary,
-    fontFamily: "Montserrat-SemiBold",
-  },
-  stopDetailsLeftDetailsDescription: {
-    fontSize: width * 0.03,
-    color: thirtiary,
-    fontFamily: "Montserrat-Regular",
-  },
-  stopDetailsLeftButton: {
-    height: "100%",
-    aspectRatio: 1,
-    borderRadius: 1000,
-    backgroundColor: "white",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  stopDetailsLeftButtonImage: {
-    height: "55%",
-    width: "55%",
-    resizeMode: "contain",
-  },
-  stopDetailsRightText: {
-    flexDirection: "column",
-    alignItems: "center",
-  },
-  stopDetailsRightTextDetails: {
-    color: thirtiary,
-    fontFamily: "Montserrat-SemiBold",
-    fontSize: width * 0.03,
-  },
-  stopDetailsRightDetails : {
-    width : "100%",
-    flex : 1,
-    alignItems : "center",
-    justifyContent : "center"
-  },
-  stopDetailsRightETAText : {
-    color : thirtiary,
-    fontFamily : "Montserrat-SemiBold",
-    fontSize : width * 0.06,
-    position : "absolute",
-    bottom : "40%"
-  },
-  stopDetailsRightStatusText : {
-    color : thirtiary,
-    fontFamily : 'Montserrat-SemiBold',
-    position : "absolute",
-    bottom : "5%"
-  },
+
   markerCluster: {
     height: 8,
     aspectRatio: 1,

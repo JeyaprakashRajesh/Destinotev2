@@ -208,7 +208,7 @@ const getBusLocations = async () => {
 };
 const getMarkerBus = async (req, res) => {
   const { selectedStop } = req.body;
-
+  console.log(selectedStop)
   try {
     if (!selectedStop || !selectedStop.coordinates || !selectedStop.stopNo) {
       return res
@@ -221,26 +221,13 @@ const getMarkerBus = async (req, res) => {
     const routes = await Route.find({
       "busStops.busStopId": stopNo,
     });
-
-    if (!routes || routes.length === 0) {
-      return res
-        .status(404)
-        .json({ error: "No routes found for the selected bus stop" });
-    }
-
+    console.log("before broute")
     const routeNumbers = routes.map((route) => route.RouteNo);
-
+    console.log("before bus")
     const buses = await Bus.find({
       currentRouteNo: { $in: routeNumbers },
     });
-
-    if (!buses || buses.length === 0) {
-      return res.status(200).json({
-        message: "No buses found for the selected routes",
-        arrivalStatus: "NoBus",
-      });
-    }
-
+    console.log("after bus")
     let closestBus = null;
     let minimumDistance = Infinity;
 
