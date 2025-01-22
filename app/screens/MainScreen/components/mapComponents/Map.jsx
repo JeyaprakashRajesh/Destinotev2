@@ -16,6 +16,12 @@ import {
   PROVIDER_DEFAULT,
   Polyline,
 } from "react-native-maps";
+import {
+  Marker,
+  PROVIDER_GOOGLE,
+  PROVIDER_DEFAULT,
+  Polyline,
+} from "react-native-maps";
 
 import MapViewCluster from "react-native-map-clustering";
 import * as Location from "expo-location";
@@ -227,11 +233,55 @@ export default function Map() {
           {
             latitude: stop.coordinates[1],
             longitude: stop.coordinates[0],
-            latitudeDelta: 0.005,
-            longitudeDelta: 0.005,
-          },
-          500
-        );
+          };
+
+          const closestBusCoordinates = bus.reduce((closest, currentBus) => {
+            const currentDistance = Math.sqrt(
+              Math.pow(
+                currentBus.busCoordinates[1] - stopCoordinates.latitude,
+                2
+              ) +
+                Math.pow(
+                  currentBus.busCoordinates[0] - stopCoordinates.longitude,
+                  2
+                )
+            );
+
+            return !closest || currentDistance < closest.distance
+              ? {
+                  coordinates: currentBus.busCoordinates,
+                  distance: currentDistance,
+                }
+              : closest;
+          }, null)?.coordinates;
+
+          if (closestBusCoordinates) {
+            const midpoint = {
+              latitude:
+                (stopCoordinates.latitude + closestBusCoordinates[1]) / 2,
+              longitude:
+                (stopCoordinates.longitude + closestBusCoordinates[0]) / 2,
+            };
+
+            // Adjust zoom level
+            const zoomDelta = {
+              latitudeDelta:
+                Math.abs(stopCoordinates.latitude - closestBusCoordinates[1]) *
+                2, // Slightly farther
+              longitudeDelta:
+                Math.abs(stopCoordinates.longitude - closestBusCoordinates[0]) *
+                2, // Slightly farther
+            };
+
+            mapRef.current.animateToRegion(
+              {
+                ...midpoint,
+                ...zoomDelta,
+              },
+              500
+            );
+          }
+        }
       }
     }
   };
@@ -317,6 +367,7 @@ export default function Map() {
         <Image
           source={require("../../../../assets/pictures/location.png")}
           resizeMode="contain"
+          style={[
           style={[
             styles.locaitonImg,
             { tintColor: pinLocation ? primary : secondary },

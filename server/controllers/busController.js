@@ -217,7 +217,7 @@ const getMarkerBus = async (req, res) => {
     }
 
     const { coordinates, stopNo } = selectedStop;
-
+    
     const routes = await Route.find({
       "busStops.busStopId": stopNo,
     });
@@ -230,7 +230,7 @@ const getMarkerBus = async (req, res) => {
     console.log("after bus")
     let closestBus = null;
     let minimumDistance = Infinity;
-
+    console.log("before funtion")
     for (const bus of buses) {
       const lastProgress = bus.busProgress[bus.busProgress.length - 1] || {
         progress: 0,
@@ -253,13 +253,15 @@ const getMarkerBus = async (req, res) => {
         closestBus = bus;
       }
     }
-
-    if (!closestBus) {
+    console.log("closestBus")
+    if (closestBus === null) {
+      console.log("Closest bus not found. Returning NoBus response.");
       return res.status(200).json({
         message: "No nearby buses found for the selected stop",
         arrivalStatus: "NoBus",
       });
     }
+    
 
     const currentRoute = routes.find(
       (route) => route.RouteNo === closestBus.currentRouteNo
@@ -268,7 +270,7 @@ const getMarkerBus = async (req, res) => {
     const lastProgress =
       closestBus.busProgress[closestBus.busProgress.length - 1];
     const lastProgressTime = new Date(lastProgress.progressTime);
-    const currentTime = new Date();
+    const currentTime = new Date(); 
 
     let expectedArrivalTime =
       lastProgressTime > currentTime ? lastProgressTime : currentTime;
@@ -294,12 +296,12 @@ const getMarkerBus = async (req, res) => {
     if(lastProgressTime < currentTime) {
       arrivalStatus = "Delay"
     }
-
+    console.log("bus")
     return res.status(200).json({
       message: "Closest bus found successfully",
       closestBus: {
         VehicleNo: closestBus.VehicleNo,
-        BusNo: closestBus.BusNo,
+        BusNo: closestBus.BusNo, 
         currentCoordinates: closestBus.busCoordinates,
         expectedArrivalTime,
       },
