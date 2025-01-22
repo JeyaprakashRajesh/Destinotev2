@@ -16,12 +16,6 @@ import {
   PROVIDER_DEFAULT,
   Polyline,
 } from "react-native-maps";
-import {
-  Marker,
-  PROVIDER_GOOGLE,
-  PROVIDER_DEFAULT,
-  Polyline,
-} from "react-native-maps";
 
 import MapViewCluster from "react-native-map-clustering";
 import * as Location from "expo-location";
@@ -233,7 +227,7 @@ export default function Map() {
           {
             latitude: stop.coordinates[1],
             longitude: stop.coordinates[0],
-          };
+          });
 
           const closestBusCoordinates = bus.reduce((closest, currentBus) => {
             const currentDistance = Math.sqrt(
@@ -367,7 +361,6 @@ export default function Map() {
         <Image
           source={require("../../../../assets/pictures/location.png")}
           resizeMode="contain"
-          style={[
           style={[
             styles.locaitonImg,
             { tintColor: pinLocation ? primary : secondary },
