@@ -2,8 +2,15 @@ import React from "react";
 import { Polyline } from "react-native-maps";
 
 export default function StopDetailsPolyline({ selectedBus, stopCoordinates }) {
-  if (!selectedBus || !stopCoordinates) {
-    console.warn("Polyline not rendered: Missing coordinates");
+  if (
+    !selectedBus || 
+    !Array.isArray(selectedBus) || 
+    selectedBus.length < 2 || 
+    !stopCoordinates || 
+    !Array.isArray(stopCoordinates) || 
+    stopCoordinates.length < 2
+  ) {
+    console.warn("Polyline not rendered: Missing or invalid coordinates");
     return null;
   }
 
@@ -17,6 +24,8 @@ export default function StopDetailsPolyline({ selectedBus, stopCoordinates }) {
   return (
     <Polyline
       coordinates={formattedCoordinates}
+      strokeWidth={3}
+      strokeColor="blue"
     />
   );
 }

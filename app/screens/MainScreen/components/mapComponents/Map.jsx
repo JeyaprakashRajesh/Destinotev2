@@ -31,8 +31,8 @@ import { primary, secondary, thirtiary } from "../../../../utilities/color.js";
 import axios from "axios";
 const { height, width } = Dimensions.get("screen");
 
-const SOCKET_URL = "ws://192.168.1.7:5000";
-const backendURL = "http://192.168.1.7:5000";
+const SOCKET_URL = "ws://192.168.1.2:5000";
+const backendURL = "http://192.168.1.2:5000";
 
 export default function Map() {
   const [location, setLocation] = useState(null);
@@ -47,6 +47,8 @@ export default function Map() {
   const [selectedBus, setSelectedBus] = useState(null);
   const [stopCoordinates, setStopCoordinates] = useState(null);
   const [bus, setBus] = useState([]);
+
+
 
   const blue = "#034694";
   const red = "#B22222";
@@ -88,21 +90,31 @@ export default function Map() {
   useEffect(() => {}, [isMarkerSelected]);
   useEffect(() => {
     if (mapRef.current && selectedBus && stopCoordinates) {
-      mapRef.current.fitToCoordinates(
-        [
-          { latitude: stopCoordinates[1], longitude: stopCoordinates[0] },
-          { latitude: selectedBus[1], longitude: selectedBus[0] },
-        ],
-        {
-          edgePadding: {
-            top: height * 0.2,
-            right: 50,
-            bottom: height * 0.2,
-            left: 50,
-          },
-          animated: true,
-        }
-      );
+      if (
+        stopCoordinates.length === 2 &&
+        selectedBus.length === 2 &&
+        typeof stopCoordinates[0] === "number" &&
+        typeof stopCoordinates[1] === "number" &&
+        typeof selectedBus[0] === "number" &&
+        typeof selectedBus[1] === "number"
+      ) {
+        mapRef.current.fitToCoordinates(
+          [
+            { latitude: stopCoordinates[1], longitude: stopCoordinates[0] },
+            { latitude: selectedBus[1], longitude: selectedBus[0] },
+          ],
+          {
+            edgePadding: {
+              top: height * 0.2,
+              right: 50,
+              bottom: height * 0.2,
+              left: 50,
+            },
+            animated: true,
+          }
+        );
+      } else {
+      }
     }
   }, [selectedBus, stopCoordinates]);
   if (!fontsLoaded) {
@@ -215,19 +227,20 @@ export default function Map() {
   const handleRegionChange = throttledHandleRegionChange;
 
   const handleMarkerPress = (stop) => {
-    console.log("handleMarkerPress");
     if (selectedStop && selectedStop.id === stop.id) {
       setSelectedStop(null);
       setIsMarkerSelected(false);
     } else {
       setSelectedStop(stop);
       setIsMarkerSelected(true);
-      if (mapRef.current) {
+
+      if (mapRef.current && stopCoordinates) {
         mapRef.current.animateToRegion(
           {
             latitude: stop.coordinates[1],
             longitude: stop.coordinates[0],
           });
+
 
           const closestBusCoordinates = bus.reduce((closest, currentBus) => {
             const currentDistance = Math.sqrt(
@@ -278,7 +291,7 @@ export default function Map() {
         }
       }
     }
-  };
+  ;
 
   return (
     <View style={styles.container}>
@@ -301,6 +314,7 @@ export default function Map() {
             setIsMarkerSelected(false);
             setSelectedBus(null);
             setSelectedStop(null);
+            setStopCoordinates(null);
           }}
           renderCluster={(cluster) => {
             const { id, geometry } = cluster;

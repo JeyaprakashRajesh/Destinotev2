@@ -31,7 +31,6 @@ const StopDetails = React.memo(
     const [arrivalTimeInMinutes, setArrivalTimeInMinutes] = useState(null);
       
     useEffect(() => {
-        console.log("useEffect StopDetails")
       setStopCoordinates(selectedStop.coordinates); 
       if (selectedStop) {
         if (arrivalTimeInMinutes === null) {
