@@ -1,11 +1,11 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import Map from "./mapComponents/Map";
+import SearchScreen from "./mapComponents/SearchScreen";
 
 const Stack = createNativeStackNavigator();
 
 export default function Home() {
-
   return (
     <Stack.Navigator
       initialRouteName="Map"
@@ -13,10 +13,10 @@ export default function Home() {
         headerShown: false,
       }}
     >
-      <Stack.Screen
-        name="Map"
-        component={(props) => <Map {...props}  />}
-      />
+      <Stack.Screen name="Map">
+        {(props) => <Map {...props} />} 
+      </Stack.Screen>
+      <Stack.Screen name="Search" component={SearchScreen} />
     </Stack.Navigator>
   );
 }

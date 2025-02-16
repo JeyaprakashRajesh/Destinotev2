@@ -8,7 +8,6 @@ import {
   Text,
   Image,
   Platform,
-  Animated,
 } from "react-native";
 import {
   Marker,
@@ -28,11 +27,12 @@ import RenderBusMarkers from "./RenderBusMarkers.jsx";
 import StopDetails from "./StopDetails.jsx";
 
 import { primary, secondary, thirtiary } from "../../../../utilities/color.js";
-import axios from "axios";
+import { customMapStyle } from "./MapUtils.jsx";
+import BusDetails from "./BusDetails.jsx";
+import { useNavigation } from "@react-navigation/native";
 const { height, width } = Dimensions.get("screen");
 
-const SOCKET_URL = "ws://192.168.1.2:5000";
-const backendURL = "http://192.168.1.2:5000";
+import { BACKEND_URL , SOCKET_URL } from "../../../../utilities/routes.js";
 
 export default function Map() {
   const [location, setLocation] = useState(null);
@@ -47,6 +47,8 @@ export default function Map() {
   const [selectedBus, setSelectedBus] = useState(null);
   const [stopCoordinates, setStopCoordinates] = useState(null);
   const [bus, setBus] = useState([]);
+  const [selectedBusMarker, setSelectedBusMarker] = useState(null)
+  const navigation = useNavigation();
 
 
 
@@ -87,7 +89,6 @@ export default function Map() {
       socket.current.disconnect();
     };
   }, []);
-  useEffect(() => {}, [isMarkerSelected]);
   useEffect(() => {
     if (mapRef.current && selectedBus && stopCoordinates) {
       if (
@@ -141,68 +142,15 @@ export default function Map() {
     );
   }
 
-  const customMapStyle = [
-    {
-      featureType: "administrative",
-      elementType: "geometry",
-      stylers: [
-        {
-          visibility: "off",
-        },
-      ],
-    },
-    {
-      featureType: "administrative.land_parcel",
-      elementType: "labels",
-      stylers: [
-        {
-          visibility: "off",
-        },
-      ],
-    },
-    {
-      featureType: "poi",
-      stylers: [
-        {
-          visibility: "off",
-        },
-      ],
-    },
-    {
-      featureType: "road",
-      elementType: "labels.icon",
-      stylers: [
-        {
-          visibility: "off",
-        },
-      ],
-    },
-    {
-      featureType: "road.local",
-      elementType: "labels",
-      stylers: [
-        {
-          visibility: "off",
-        },
-      ],
-    },
-    {
-      featureType: "transit",
-      stylers: [
-        {
-          visibility: "off",
-        },
-      ],
-    },
-  ];
+
 
   const region = location
     ? {
-        latitude: location.latitude,
-        longitude: location.longitude,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
-      }
+      latitude: location.latitude,
+      longitude: location.longitude,
+      latitudeDelta: 0.0922,
+      longitudeDelta: 0.0421,
+    }
     : null;
 
   const handlePinLocation = () => {
@@ -230,6 +178,7 @@ export default function Map() {
     if (selectedStop && selectedStop.id === stop.id) {
       setSelectedStop(null);
       setIsMarkerSelected(false);
+
     } else {
       setSelectedStop(stop);
       setIsMarkerSelected(true);
@@ -242,56 +191,56 @@ export default function Map() {
           });
 
 
-          const closestBusCoordinates = bus.reduce((closest, currentBus) => {
-            const currentDistance = Math.sqrt(
-              Math.pow(
-                currentBus.busCoordinates[1] - stopCoordinates.latitude,
-                2
-              ) +
-                Math.pow(
-                  currentBus.busCoordinates[0] - stopCoordinates.longitude,
-                  2
-                )
-            );
+        const closestBusCoordinates = bus.reduce((closest, currentBus) => {
+          const currentDistance = Math.sqrt(
+            Math.pow(
+              currentBus.busCoordinates[1] - stopCoordinates.latitude,
+              2
+            ) +
+            Math.pow(
+              currentBus.busCoordinates[0] - stopCoordinates.longitude,
+              2
+            )
+          );
 
-            return !closest || currentDistance < closest.distance
-              ? {
-                  coordinates: currentBus.busCoordinates,
-                  distance: currentDistance,
-                }
-              : closest;
-          }, null)?.coordinates;
+          return !closest || currentDistance < closest.distance
+            ? {
+              coordinates: currentBus.busCoordinates,
+              distance: currentDistance,
+            }
+            : closest;
+        }, null)?.coordinates;
 
-          if (closestBusCoordinates) {
-            const midpoint = {
-              latitude:
-                (stopCoordinates.latitude + closestBusCoordinates[1]) / 2,
-              longitude:
-                (stopCoordinates.longitude + closestBusCoordinates[0]) / 2,
-            };
+        if (closestBusCoordinates) {
+          const midpoint = {
+            latitude:
+              (stopCoordinates.latitude + closestBusCoordinates[1]) / 2,
+            longitude:
+              (stopCoordinates.longitude + closestBusCoordinates[0]) / 2,
+          };
 
-            // Adjust zoom level
-            const zoomDelta = {
-              latitudeDelta:
-                Math.abs(stopCoordinates.latitude - closestBusCoordinates[1]) *
-                2, // Slightly farther
-              longitudeDelta:
-                Math.abs(stopCoordinates.longitude - closestBusCoordinates[0]) *
-                2, // Slightly farther
-            };
+          // Adjust zoom level
+          const zoomDelta = {
+            latitudeDelta:
+              Math.abs(stopCoordinates.latitude - closestBusCoordinates[1]) *
+              2, // Slightly farther
+            longitudeDelta:
+              Math.abs(stopCoordinates.longitude - closestBusCoordinates[0]) *
+              2, // Slightly farther
+          };
 
-            mapRef.current.animateToRegion(
-              {
-                ...midpoint,
-                ...zoomDelta,
-              },
-              500
-            );
-          }
+          mapRef.current.animateToRegion(
+            {
+              ...midpoint,
+              ...zoomDelta,
+            },
+            500
+          );
         }
       }
     }
-  ;
+  }
+    ;
 
   return (
     <View style={styles.container}>
@@ -310,10 +259,10 @@ export default function Map() {
           radius={8}
           rotateEnabled={false}
           onPress={() => {
-            setSelectedStop(null);
             setIsMarkerSelected(false);
             setSelectedBus(null);
             setSelectedStop(null);
+            setSelectedBusMarker(null)
             setStopCoordinates(null);
           }}
           renderCluster={(cluster) => {
@@ -340,20 +289,20 @@ export default function Map() {
             nearbyStops={nearbyStops}
             handleMarkerPress={handleMarkerPress}
           />
-          <RenderBusMarkers bus={bus} />
+          <RenderBusMarkers bus={bus} setSelectedBusMarker={setSelectedBusMarker} />
           {isMarkerSelected && selectedBus && stopCoordinates && (
-          <Polyline
-          coordinates={[
-            { latitude: stopCoordinates[1], longitude: stopCoordinates[0] },
-            { latitude: selectedBus[1], longitude: selectedBus[0] },
-          ]}
-          strokeColor={secondary}
-          strokeWidth={4}
-          lineDashPattern={[10,3]}
-        />
-        
-        
-         
+            <Polyline
+              coordinates={[
+                { latitude: stopCoordinates[1], longitude: stopCoordinates[0] },
+                { latitude: selectedBus[1], longitude: selectedBus[0] },
+              ]}
+              strokeColor={secondary}
+              strokeWidth={4}
+              lineDashPattern={[10, 3]}
+            />
+
+
+
           )}
         </MapViewCluster>
       )}
@@ -362,14 +311,17 @@ export default function Map() {
           selectedStop={selectedStop}
           arrivalStatus={arrivalStatus}
           setArrivalStatus={setArrivalStatus}
-          backendURL={backendURL}
+          backendURL={BACKEND_URL}
           setSelectedBus={setSelectedBus}
           setStopCoordinates={setStopCoordinates}
         />
       )}
+      {selectedBusMarker && (
+        <BusDetails selectedBusMarker={selectedBusMarker} />
+      )}
 
       <TouchableOpacity
-        style={[styles.locationButton, { bottom: isMarkerSelected ? 190 : 20 }]}
+        style={[styles.locationButton, { bottom: isMarkerSelected || selectedBusMarker ? 190 : 20 }]}
         onPress={handlePinLocation}
       >
         <Image
@@ -406,7 +358,10 @@ export default function Map() {
             />
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.rightContainer}>
+        <TouchableOpacity
+          style={styles.rightContainer}
+          onPress={() => navigation.navigate("Search")}
+        >
           <View style={styles.rightInnerContainer}>
             <Image
               source={require("../../../../assets/pictures/search.png")}
@@ -416,6 +371,7 @@ export default function Map() {
             <Text style={styles.searchText}>Search...</Text>
           </View>
         </TouchableOpacity>
+
       </View>
       <View style={styles.rightButtonContainer}>
         <TouchableOpacity

@@ -190,22 +190,47 @@ const incrementBusProgress = async (req, res) => {
 
 const getBusLocations = async () => {
   try {
-    const buses = await Bus.find();
-    return buses.map((bus) => ({
-      VehicleNo: bus.VehicleNo,
-      BusNo: bus.BusNo,
-      busCoordinates: bus.busCoordinates,
-      previousCoordinates: bus.previousCoordinates,
-      busStatus: bus.busStatus,
-      currentRouteNo: bus.currentRouteNo,
-      busType: bus.busType,
-      busDistrict: bus.busDistrict,
-    }));
+    const buses = await Bus.find().populate("RouteNo"); // Populate RouteNo with full route details
+
+    return buses.map((bus) => {
+      const currentRoute = bus.RouteNo[bus.currentRouteNo]; // Get the current route
+      let nextStop = null;
+      let startingStop = null;
+      let endingStop = null;
+
+      if (currentRoute && currentRoute.busStops.length > 0) {
+        startingStop = currentRoute.busStops[0].busStopId; // First stop
+        endingStop = currentRoute.busStops[currentRoute.busStops.length - 1].busStopId; // Last stop
+
+        // Determine the next stop based on bus progress
+        const lastProgress = bus.busProgress[bus.busProgress.length - 1] || { progress: 0 };
+        const nextStopIndex = lastProgress.progress + 1;
+
+        if (nextStopIndex < currentRoute.busStops.length) {
+          nextStop = currentRoute.busStops[nextStopIndex].busStopId;
+        }
+      }
+
+      return {
+        VehicleNo: bus.VehicleNo,
+        BusNo: bus.BusNo,
+        busCoordinates: bus.busCoordinates,
+        previousCoordinates: bus.previousCoordinates,
+        busStatus: bus.busStatus,
+        currentRouteNo: bus.currentRouteNo,
+        busType: bus.busType,
+        busDistrict: bus.busDistrict,
+        nextStop,
+        startingStop,
+        endingStop,
+      };
+    });
   } catch (err) {
     console.error("Error fetching bus locations:", err);
     return [];
   }
 };
+
 const getMarkerBus = async (req, res) => {
   const { selectedStop } = req.body;
   console.log(selectedStop)
