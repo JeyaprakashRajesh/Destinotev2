@@ -6,7 +6,7 @@ import { primary, secondary, thirtiary } from "../../../../utilities/color.js";
 const { height, width } = Dimensions.get("screen");
 import { BACKEND_URL } from "../../../../utilities/routes.js";
 
-export default function SearchScreen({ navigation }) {
+export default function SearchScreen({ navigation , setDirection}) {
   const [stops, setStops] = useState([]);
   const [query, setQuery] = useState("");
   const inputRef = useRef(null);
@@ -50,6 +50,10 @@ export default function SearchScreen({ navigation }) {
       </Text>
     );
   };
+  const handleClick = (item) => {
+    setDirection(item)
+    navigation.navigate("directions")
+  }
 
 
   return (
@@ -122,7 +126,7 @@ export default function SearchScreen({ navigation }) {
                   style={styles.markerImg}
                   resizeMode="contain"
                 />
-                <TouchableOpacity style={styles.resultItem} onPress={() => alert(`Selected Stop: ${item.name}`)}>
+                <TouchableOpacity style={styles.resultItem} onPress={() => handleClick(item)}>
                   {highlightMatch(item.name, query)}
                 </TouchableOpacity>
                 <TouchableOpacity
