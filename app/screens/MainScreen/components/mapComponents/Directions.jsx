@@ -181,8 +181,18 @@ export default function Directions({ navigation, direction, setDirection }) {
             />
           )}
 
-          {routeCoords.length > 0 && (
+          {/* {routeCoords.length > 0 && (
             <Polyline coordinates={routeCoords} strokeWidth={4} strokeColor={"blue"} />
+          )} */}
+
+          {destination && (
+            <Polyline 
+              coordinates={[userLocation , destination]}
+              strokeWidth={4} 
+              strokeColor={secondary}
+              geodesic={true}
+              lineDashPattern={[13, 10]}
+             />
           )}
 
         </MapView>

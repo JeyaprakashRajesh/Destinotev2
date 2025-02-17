@@ -34,7 +34,7 @@ const { height, width } = Dimensions.get("screen");
 
 import { BACKEND_URL , SOCKET_URL } from "../../../../utilities/routes.js";
 
-export default function Map() {
+export default function Map({setDirection}) {
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -314,6 +314,8 @@ export default function Map() {
           backendURL={BACKEND_URL}
           setSelectedBus={setSelectedBus}
           setStopCoordinates={setStopCoordinates}
+          setDirection={setDirection}
+          navigation={navigation}
         />
       )}
       {selectedBusMarker && (

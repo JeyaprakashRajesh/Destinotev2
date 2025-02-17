@@ -16,7 +16,7 @@ export default function Home() {
       }}
     >
       <Stack.Screen name="Map">
-        {(props) => <Map {...props} />} 
+        {(props) => <Map {...props} setDirection={setDirection}/> } 
       </Stack.Screen>
       <Stack.Screen name="Search">
         {(props) => <SearchScreen {...props} setDirection={setDirection}/>}

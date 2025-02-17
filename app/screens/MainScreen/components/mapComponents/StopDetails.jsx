@@ -26,6 +26,8 @@ const StopDetails = React.memo(
     arrivalStatus,
     setStopCoordinates,
     setSelectedBus,
+    setDirection,
+    navigation
   }) => {
     const [loadingBusData, setLoadingBusData] = useState(false);
     const [arrivalTimeInMinutes, setArrivalTimeInMinutes] = useState(null);
@@ -110,7 +112,10 @@ const StopDetails = React.memo(
                 ]}
               />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.stopDetailsLeftButton}>
+            <TouchableOpacity style={styles.stopDetailsLeftButton} onPress={() => {
+              setDirection(selectedStop)
+              navigation.navigate("directions")
+            }}>
               <Image
                 source={require("../../../../assets/pictures/directions.png")}
                 style={[
