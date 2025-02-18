@@ -9,20 +9,39 @@ import {
   Platform,
   TextInput,
   TouchableOpacity,
+  Alert,
 } from "react-native";
-import {
-  primary,
-  secondary,
-  secondaryAcent,
-  thirtiary,
-} from "../../../utilities/color";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import { primary, secondary, secondaryAcent, thirtiary } from "../../../utilities/color";
+import { BACKEND_URL } from "../../../utilities/routes";
 
 const { height, width } = Dimensions.get("screen");
 
+
 export default function Phone({ navigation }) {
   const [phone, setPhone] = useState("");
-  function handleGetOtp() {
-    navigation.navigate("Otp");
+
+  async function handleGetOtp() {
+    if (phone.length !== 10) {
+      Alert.alert("Invalid Phone Number", "Please enter a valid 10-digit phone number.");
+      return;
+    }
+
+    try {
+      await AsyncStorage.setItem("phone", phone); // Store phone number in AsyncStorage
+
+      const response = await axios.post(`${BACKEND_URL}/api/user/phone`, { phone });
+
+      if (response.status === 200) {
+        navigation.navigate("Otp"); // Navigate to OTP screen
+      } else {
+        Alert.alert("Error", "Failed to send OTP. Please try again.");
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Network Error", "Could not connect to server. Please check your connection.");
+    }
   }
 
   return (
@@ -45,9 +64,7 @@ export default function Phone({ navigation }) {
           />
         </View>
         <View style={styles.headerContent}>
-          <Text style={styles.headerContentText}>
-            Enter the Phone Number to continue
-          </Text>
+          <Text style={styles.headerContentText}>Enter the Phone Number to continue</Text>
         </View>
       </View>
       <View style={styles.phoneContainer}>
@@ -56,18 +73,24 @@ export default function Phone({ navigation }) {
           style={styles.phoneInput}
           keyboardType="numeric"
           value={phone}
-          onChangeText={(val) => setPhone(val)}
+          onChangeText={(val) => {
+            const numericValue = val.replace(/[^0-9]/g, ""); // Allow only numbers
+            if (numericValue.length <= 10) {
+              setPhone(numericValue); // Restrict to 10 digits
+            }
+          }}
+          maxLength={10}
           placeholder="Enter phone number"
           placeholderTextColor="grey"
         />
       </View>
-      <View style={styles.lineContianer}>
+      <View style={styles.lineContainer}>
         <View style={styles.lineElement}></View>
         <View style={styles.lineMiddle}>
           <Image
             source={require("../../../assets/pictures/cross.png")}
             resizeMode="contain"
-            style={styles.lineMidlleImage}
+            style={styles.lineMiddleImage}
           />
         </View>
         <View style={styles.lineElement}></View>
@@ -148,12 +171,7 @@ const styles = StyleSheet.create({
     backgroundColor: secondaryAcent,
     paddingLeft: width * 0.05,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  lineContianer: {
+  lineContainer: {
     width: width * 0.85,
     height: height * 0.04,
     alignItems: "center",
@@ -176,7 +194,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  lineMidlleImage: {
+  lineMiddleImage: {
     aspectRatio: 1,
     height: "50%",
   },

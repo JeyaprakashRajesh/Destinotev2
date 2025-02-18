@@ -97,7 +97,8 @@ const styles = StyleSheet.create({
     fontSize : width * 0.035,
     marginLeft : 5,
     marginRight : 5,
-    marginTop : Platform.OS === "ios" ? width * 0.05 : 0
+    marginTop : width * 0.004,
+    padding : 5
   },
   busNumberPlateContainer : {
     height : "100%",

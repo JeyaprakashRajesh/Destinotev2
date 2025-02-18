@@ -8,6 +8,9 @@ export default function useCustomFonts() {
     'JosefinSans-SemiBold' : require("../assets/fonts/JosefinSans-SemiBold.ttf"),
     'Poppins-SemiBold' : require("../assets/fonts/Poppins-SemiBold.ttf"),
     'JosefinSans-Bold' : require("../assets/fonts/JosefinSans-Bold.ttf"),
+    'Montserrat-SemiBold' : require("../assets/fonts/Montserrat-SemiBold.ttf"),
+    'Montserrat-Medium' : require("../assets/fonts/Montserrat-Medium.ttf"),
+    'Montserrat-Regular' : require("../assets/fonts/Montserrat-Regular.ttf")
 
   });
 

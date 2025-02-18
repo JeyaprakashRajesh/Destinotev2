@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -16,6 +16,9 @@ import {
   secondaryAcent,
   thirtiary,
 } from "../../../utilities/color";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import { BACKEND_URL } from "../../../utilities/routes";
 
 const { height, width } = Dimensions.get("screen");
 
@@ -23,10 +26,42 @@ import MainScreen from "../../MainScreen/MainScreen";
 
 export default function Otp({ navigation, setScreen }) {
   const [otp, setOtp] = useState();
+  const [phone, setPhone] = useState("");
 
-  function handleGetOtp() {
-    setScreen(<MainScreen />)
+  useEffect(() => {
+    const fetchPhone = async () => {
+      const storedPhone = await AsyncStorage.getItem("phone");
+      if (storedPhone) {
+        setPhone(storedPhone);
+      }
+    };
+    fetchPhone();
+  }, []);
+
+
+  async function handleOtpSubmit() {
+    console.log(otp)
+    if (!otp || otp.length !== 6) {
+      Alert.alert("Invalid OTP", "OTP must be 6 digits.");
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${BACKEND_URL}/api/user/login`, {
+        phone, 
+        otp,
+      });
+
+      const { token, message } = response.data;
+      await AsyncStorage.setItem("token", token); // Store token
+
+      setScreen(<MainScreen />); // Navigate to Main Screen
+    } catch (error) {
+      console.error(error);
+    }
   }
+
+
 
   return (
     <View style={styles.container}>
@@ -77,9 +112,11 @@ export default function Otp({ navigation, setScreen }) {
         </View>
         <View style={styles.lineElement}></View>
       </View>
-      <TouchableOpacity style={styles.button} onPress={handleGetOtp}>
+      <TouchableOpacity style={styles.button} onPress={handleOtpSubmit}>
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
+
+
     </View>
   );
 }

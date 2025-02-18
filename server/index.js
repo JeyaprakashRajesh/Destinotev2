@@ -10,6 +10,7 @@ const BusStop = require("./models/busStopModel");
 const {getNearbyStops} = require("./controllers/busStopController");
 const routeRoutes = require("./routes/routeRoutes");
 const busRoutes = require("./routes/busRoutes");
+const UserRoutes = require("./routes/UserRoutes.js")
 const { getBusLocations } = require("./controllers/busController");
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.use(express.json());
 app.use("/api/busstops", busStopRoutes);
 app.use("/api/routes", routeRoutes);
 app.use("/api/buses", busRoutes);
+app.use("/api/user", UserRoutes)
 connectDB();
 
 const sendBusDataToClient = async (socket) => {

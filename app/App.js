@@ -13,7 +13,7 @@ export default function App() {
   useEffect(() => {
     const checkToken = async () => {
       const token = await AsyncStorage.getItem("token");
-      if (token != null) {
+      if (token == null) {
         setScreen(<AuthScreen setScreen = {setScreen} />);
       } else {
         setScreen(<MainScreen />);
