@@ -28,6 +28,7 @@ const userSchema = new mongoose.Schema({
         balance: Number,
         transactionAmount: Number,
         operation: String,
+        date : Date
       },
     ],
   },

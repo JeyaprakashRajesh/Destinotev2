@@ -5,6 +5,7 @@ import axios from "axios";
 import { BACKEND_URL } from "../../../utilities/routes";
 import Pay from "./payComponents/Pay";
 import TransactionHistory from "./payComponents/TransactionHistory";
+import Recharge from "./payComponents/Recharge";
 
 const Stack = createNativeStackNavigator();
 
@@ -48,6 +49,9 @@ export default function Home() {
       </Stack.Screen>
       <Stack.Screen name="transaction">
         {(props) => <TransactionHistory {...props} data={data} setData={setData} />}
+      </Stack.Screen>
+      <Stack.Screen name="recharge">
+        {(props) => <Recharge {...props} data={data} setData={setData} />}
       </Stack.Screen>
     </Stack.Navigator>
   );

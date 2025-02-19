@@ -108,7 +108,7 @@ export default function Pay({navigation , data , setData}) {
         </View>
         <View style={styles.walletChildRightContainer}>
           <View style={styles.walletChildRightTopContainer}>
-            <TouchableOpacity style={styles.walletChildElement}>
+            <TouchableOpacity style={styles.walletChildElement} onPress={() => navigation.navigate("recharge")}>
               <Image
                 source={require("../../../../assets/pictures/wallet.png")}
                 style={styles.walletChildRightBottomElementImage}
