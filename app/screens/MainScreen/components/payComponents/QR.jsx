@@ -7,6 +7,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const { height, width } = Dimensions.get("screen");
 import { secondaryAcent, primary, secondary, thirtiary } from "../../../../utilities/color";
 import LottieView from "lottie-react-native";
+import QRCode from "react-native-qrcode-svg";
+import { CommonActions } from "@react-navigation/native";
+
+
 
 
 
@@ -18,6 +22,8 @@ export default function QR({ navigation, data, setData }) {
     const [from, setFrom] = useState(null);
     const [bus, setBus] = useState(null);
     const [confirm, setConfirm] = useState(false)
+    const blue = "#034694";
+    const red = "#B22222";
 
     useEffect(() => {
         if (permission?.status !== "granted") {
@@ -49,7 +55,7 @@ export default function QR({ navigation, data, setData }) {
             );
 
             if (response.data) {
-                setData(response.data.data);
+                setData(response.data.user);
                 setTo(response.data.toStop);
                 setFrom(response.data.fromStop);
                 setBus(response.data.bus);
@@ -127,7 +133,7 @@ export default function QR({ navigation, data, setData }) {
                                 source={require("../../../../assets/pictures/sucess.json")}
                                 autoPlay
                                 loop={false}
-                                style={{ width : width * 0.2 , height : width * 0.2 }}
+                                style={{ width: width * 0.2, height: width * 0.2 }}
                             />
                             <Text style={styles.headingText}>
                                 Payment Sucessful
@@ -139,7 +145,7 @@ export default function QR({ navigation, data, setData }) {
                             <View style={styles.stopContainer}>
                                 <View style={styles.stopImgContainer}>
                                     <Image
-                                        source={from.type === "stop" ?  require("../../../../assets/pictures/farMarkerRed.png") : require("../../../../assets/pictures/farMarkerBlue.png")}
+                                        source={from.type === "stop" ? require("../../../../assets/pictures/farMarkerRed.png") : require("../../../../assets/pictures/farMarkerBlue.png")}
                                         style={styles.stopImg}
                                         resizeMode="contain"
                                     />
@@ -160,7 +166,7 @@ export default function QR({ navigation, data, setData }) {
                             <View style={styles.stopContainer}>
                                 <View style={styles.stopImgContainer}>
                                     <Image
-                                        source={to.type === "stop" ?  require("../../../../assets/pictures/farMarkerRed.png") : require("../../../../assets/pictures/farMarkerBlue.png")}
+                                        source={to.type === "stop" ? require("../../../../assets/pictures/farMarkerRed.png") : require("../../../../assets/pictures/farMarkerBlue.png")}
                                         style={styles.stopImg}
                                         resizeMode="contain"
                                     />
@@ -180,7 +186,46 @@ export default function QR({ navigation, data, setData }) {
                         </View>
                         <View style={styles.bottomContainer}>
                             <View style={styles.busContainer}>
-
+                                <Text style={styles.busText}>
+                                    Bus Details
+                                </Text>
+                                <Text style={styles.busType}>
+                                    {bus.busType}
+                                </Text>
+                                <Text style={styles.district}>
+                                    {bus.busDistrict}
+                                </Text>
+                                <View style={styles.busNumberContainer}>
+                                    <Text style={[styles.busNumber, { fontSize: height * 0.02, color: bus.busType === "Town Bus" ? red : blue }]} >
+                                        {bus.VehicleNo.slice(0, 6)}
+                                    </Text>
+                                    <Text style={[styles.busNumber, { fontSize: height * 0.03, color: bus.busType === "Town Bus" ? red : blue }]} >
+                                        {bus.VehicleNo.slice(6)}
+                                    </Text>
+                                </View>
+                            </View>
+                            <View style={styles.qrContainer}>
+                                <View style={styles.qrInnerContainer}>
+                                    {parsedData && (
+                                        <QRCode
+                                            value={JSON.stringify(parsedData)}
+                                            size={height * 0.13}
+                                            backgroundColor="black"
+                                            color="#eeeeee"
+                                        />
+                                    )}
+                                </View>
+                                <TouchableOpacity style={styles.buttonBack} onPress={() => {
+                                    navigation.dispatch(
+                                                        CommonActions.reset({
+                                                            index: 0,
+                                                            routes: [{ name: "pay" }],
+                                                        }))
+                                }}>
+                                    <Text style={styles.buttonBackText}>
+                                        GO BACK
+                                    </Text>
+                                </TouchableOpacity>
                             </View>
                         </View>
                     </View>
@@ -227,7 +272,7 @@ const styles = StyleSheet.create({
     },
     balanceText: {
         color: thirtiary,
-        fontSize: width * 0.1, 
+        fontSize: width * 0.1,
         fontFamily: "Montserrat-SemiBold",
     },
     balance: {
@@ -255,77 +300,139 @@ const styles = StyleSheet.create({
         padding: width * 0.05,
         borderRadius: 10,
         marginTop: width * 0.07,
-        height : height * 0.4,
-        flexDirection : "column",
-        jusrifyContent : "space-between",
-        position : "relative"
+        height: height * 0.4,
+        flexDirection: "column",
+        jusrifyContent: "space-between",
+        position: "relative"
     },
-    headingContainer : {
-        flexDirection : "row",
-        alignItems : "center",
-        gap : 10,
-        width : width * 0.9,
-        marginTop : height * 0.03
+    headingContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
+        width: width * 0.9,
+        marginTop: height * 0.03
     },
-    headingText : {
-        fontSize : width * 0.05,
-        color : thirtiary,
-        fontFamily : "Montserrat-SemiBold"
+    headingText: {
+        fontSize: width * 0.05,
+        color: thirtiary,
+        fontFamily: "Montserrat-SemiBold"
     },
-    stopContainer : {
-        flexDirection : "row",
-        justifyContent : "space-between",
-        height : "50%",
-        width : "100%",
+    stopContainer: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        height: "50%",
+        width: "100%",
     },
-    stopImgContainer : {
-        width : "20%",
-        height : "100%",
-        justifyContent : "center",
-        alignItems : "center",
-        position : "relative"
+    stopImgContainer: {
+        width: "20%",
+        height: "100%",
+        justifyContent: "center",
+        alignItems: "center",
+        position: "relative"
     },
-    stopImg : {
-        height : "100%",
-        width : "40%",
-        zIndex : 2
+    stopImg: {
+        height: "100%",
+        width: "40%",
+        zIndex: 2
     },
-    stopDetailsContainer : {
-        flex : 1,
-        marginLeft : "5%",
-        justifyContent : "center",
-        gap : "5%"
+    stopDetailsContainer: {
+        flex: 1,
+        marginLeft: "5%",
+        justifyContent: "center",
+        gap: "5%"
     },
-    stopName : {
-        fontSize : width * 0.06,
-        color : thirtiary,
-        fontFamily : "Montserrat-SemiBold"
+    stopName: {
+        fontSize: width * 0.06,
+        color: thirtiary,
+        fontFamily: "Montserrat-SemiBold"
     },
-    stopType : {
-        fontSize : width * 0.035,
-        color : primary,
-        fontFamily : "Montserrat-SemiBold"
+    stopType: {
+        fontSize: width * 0.035,
+        color: primary,
+        fontFamily: "Montserrat-SemiBold"
     },
-    stopDistrict : {
-        fontSize : width * 0.035,
-        color : primary,
-        fontFamily : "Montserrat-SemiBold"
+    stopDistrict: {
+        fontSize: width * 0.035,
+        color: primary,
+        fontFamily: "Montserrat-SemiBold"
     },
-    stopLine : {
-        position : "absolute",
-        height : "50%",
-        width : 5,
-        backgroundColor : primary,
-        left : "50%" - 1,
-        top : "75%",
-        zIndex : 1,
-        borderRadius : 100
+    stopLine: {
+        position: "absolute",
+        height: "50%",
+        width: 5,
+        backgroundColor: primary,
+        left: "50%" - 1,
+        top: "75%",
+        zIndex: 1,
+        borderRadius: 100
     },
-    bottomContainer : {
+    bottomContainer: {
         width: width * 0.85,
-        flex : 1,
+        flex: 1,
         marginVertical: height * 0.02,
-        flexDirection : "row",
-        justifyContent : "space-between",
+        flexDirection: "row",
+        justifyContent: "space-between",
+    },
+    busContainer: {
+        height: "100%",
+        width: "50%",
+        backgroundColor: secondaryAcent,
+        borderRadius: 10,
+        alignItems: 'center',
+        gap: "1%"
+    },
+    busText: {
+        fontSize: height * 0.025,
+        color: thirtiary,
+        fontFamily: "Montserrat-SemiBold",
+        marginTop: "10%"
+    },
+    busType: {
+        fontSize: height * 0.015,
+        color: primary,
+        fontFamily: "Montserrat-SemiBold",
+    },
+    district: {
+        fontSize: height * 0.015,
+        color: primary,
+        fontFamily: "Montserrat-SemiBold",
+        marginBottom: "10%"
+    },
+    busNumberContainer: {
+        backgroundColor: thirtiary,
+        height: "45%",
+        width: "90%",
+        borderRadius: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    busNumber: {
+        color: secondary,
+        fontFamily: "Montserrat-SemiBold",
+    },
+    qrContainer: {
+        flex: 1,
+        marginLeft: "5%",
+        alignItems: 'center',
+    },
+    qrInnerContainer : {
+        backgroundColor: secondaryAcent,
+        padding: "5%",
+        borderRadius: 5
+    },
+    buttonBack : {
+        flex : 1,
+        backgroundColor : thirtiary,
+        marginTop : "10%",
+        alignItems : 'center',
+        justifyContent : 'center',
+        width : "90%",
+        borderRadius : 10
+    },
+    buttonBackText : {
+        color : secondary,
+        fontFamily : "Montserrat-SemiBold",
+        fontSize : height * 0.02
     }
+
 });
