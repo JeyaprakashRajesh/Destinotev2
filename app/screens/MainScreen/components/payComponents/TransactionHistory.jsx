@@ -1,30 +1,49 @@
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image, FlatList, Platform } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image, FlatList } from "react-native";
 import { primary, secondary, thirtiary } from "../../../../utilities/color.js";
 import { useState, useEffect } from "react";
 
 const { height, width } = Dimensions.get("screen");
 
-export default function TransactionHistory({ navigation, data, setData }) {
+export default function TransactionHistory({ navigation, data }) {
     const [transactions, setTransactions] = useState([]);
     const [filter, setFilter] = useState("");
 
     useEffect(() => {
-        setTransactions(data.transactionHistory);
+        if (data.transactionHistory) {
+            const sortedTransactions = [...data.transactionHistory].sort((a, b) => 
+                new Date(b.date) - new Date(a.date)
+            );
+            setTransactions(sortedTransactions);
+        }
     }, [data]);
 
-    const renderTransactionItem = ({ item }) => (
-        <View style={[styles.transactionItem, { backgroundColor: item.operation === "credit" ? "#4c8555" : "#854848" }]} >
-            <View style={styles.transactionContent}>
-                <Text style={styles.transactionTime}>4:10pm</Text>
-                <Text style={styles.transactionDate}>22 Jan 2025</Text>
+    const renderTransactionItem = ({ item }) => {
+        const transactionDate = new Date(item.date);
+        const formattedTime = transactionDate.toLocaleTimeString("en-US", { 
+            hour: "2-digit", 
+            minute: "2-digit", 
+            hour12: true 
+        });
+        const formattedDate = transactionDate.toLocaleDateString("en-GB", { 
+            day: "2-digit", 
+            month: "short", 
+            year: "numeric" 
+        });
+
+        return (
+            <View style={[styles.transactionItem, { backgroundColor: item.operation === "credit" ? "#4c8555" : "#854848" }]}>
+                <View style={styles.transactionContent}>
+                    <Text style={styles.transactionTime}>{formattedTime}</Text>
+                    <Text style={styles.transactionDate}>{formattedDate}</Text>
+                </View>
+                <View style={styles.transactionAmountContainer}>
+                    <Text style={[styles.transactionAmount, { color: item.operation === "credit" ? "#00d423" : "#ff3636" }]}>
+                        Rs. {item.transactionAmount}
+                    </Text>
+                </View>
             </View>
-            <View style={styles.transactionAmountContainer}>
-                <Text style={[styles.transactionAmount, { color: item.operation === "credit" ? "#00d423" : "#ff3636" }]} >
-                    Rs. {item.transactionAmount}
-                </Text>
-            </View>
-        </View>
-    );
+        );
+    };
 
     const filteredTransactions = filter
         ? transactions.filter(item => item.operation === filter)
@@ -42,9 +61,9 @@ export default function TransactionHistory({ navigation, data, setData }) {
                 </TouchableOpacity>
                 <Text style={styles.topText}>Transactions</Text>
             </View>
+
             <View style={styles.sortingContainer}>
                 <View style={styles.sortingInnerContainer}>
-                    {/* Credit Button */}
                     <TouchableOpacity
                         style={[
                             styles.sortingElement,
@@ -52,17 +71,9 @@ export default function TransactionHistory({ navigation, data, setData }) {
                         ]}
                         onPress={() => setFilter(filter === "credit" ? "" : "credit")}
                     >
-                        <Text
-                            style={[
-                                styles.sortingText,
-                                { color: "#00d423" },
-                            ]}
-                        >
-                            Credit
-                        </Text>
+                        <Text style={[styles.sortingText, { color: "#00d423" }]}>Credit</Text>
                     </TouchableOpacity>
 
-                    {/* Debit Button */}
                     <TouchableOpacity
                         style={[
                             styles.sortingElement,
@@ -70,18 +81,10 @@ export default function TransactionHistory({ navigation, data, setData }) {
                         ]}
                         onPress={() => setFilter(filter === "debit" ? "" : "debit")}
                     >
-                        <Text
-                            style={[
-                                styles.sortingText,
-                                { color: "#ff3636" },
-                            ]}
-                        >
-                            Debit
-                        </Text>
+                        <Text style={[styles.sortingText, { color: "#ff3636" }]}>Debit</Text>
                     </TouchableOpacity>
                 </View>
 
-                {/* Export Button */}
                 <TouchableOpacity style={styles.exportContainer}>
                     <Image
                         source={require("../../../../assets/pictures/export.png")}
@@ -113,7 +116,7 @@ const styles = StyleSheet.create({
     },
     topContainer: {
         flexDirection: "row",
-        alignItems: 'center',
+        alignItems: "center",
     },
     back: {
         height: height * 0.045,
@@ -140,27 +143,27 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         flexDirection: "row",
         justifyContent: "space-between",
-        paddingHorizontal: 20
+        paddingHorizontal: 20,
     },
     transactionContent: {
         marginVertical: 20,
         flexDirection: "column",
-        gap: 5
+        gap: 5,
     },
     transactionTime: {
         fontSize: 25,
         fontFamily: "Montserrat-SemiBold",
-        color: thirtiary
+        color: thirtiary,
     },
     transactionDate: {
         fontSize: 15,
         fontFamily: "Montserrat-Medium",
-        color: thirtiary
+        color: thirtiary,
     },
     transactionAmountContainer: {
         height: "100%",
         flexDirection: "row",
-        alignItems: 'center',
+        alignItems: "center",
     },
     transactionAmount: {
         fontSize: width * 0.06,
@@ -173,42 +176,42 @@ const styles = StyleSheet.create({
         marginTop: "5%",
         flexDirection: "row",
         justifyContent: "space-between",
-        alignItems: 'center',
+        alignItems: "center",
     },
     sortingInnerContainer: {
         flex: 0.7,
         flexDirection: "row",
         justifyContent: "space-between",
         height: "100%",
-        alignItems: 'center',
+        alignItems: "center",
     },
     exportContainer: {
         height: "70%",
         backgroundColor: primary,
         flexDirection: "row",
-        alignItems: 'center',
-        borderRadius: 10
+        alignItems: "center",
+        borderRadius: 10,
     },
     exportText: {
         fontSize: width * 0.04,
         fontFamily: "Montserrat-SemiBold",
-        marginRight: width * 0.03
+        marginRight: width * 0.03,
     },
     exportImage: {
         height: "100%",
         width: width * 0.05,
-        marginHorizontal: width * 0.03
+        marginHorizontal: width * 0.03,
     },
     sortingElement: {
         width: "48%",
         height: "70%",
         borderRadius: 10,
         borderWidth: 2,
-        alignItems: 'center',
-        justifyContent: 'center',
+        alignItems: "center",
+        justifyContent: "center",
     },
     sortingText: {
         fontSize: width * 0.03,
-        fontFamily: "Montserrat-Medium"
-    }
+        fontFamily: "Montserrat-Medium",
+    },
 });

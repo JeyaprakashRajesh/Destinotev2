@@ -37,15 +37,7 @@ const userSchema = new mongoose.Schema({
   },
   travelHistory: {
     type: [
-      {
-        from: mongoose.Schema.ObjectId,
-        to: mongoose.Schema.ObjectId,
-        bus: mongoose.Schema.ObjectId,
-        distance: Number,
-        timeStamp: Date,
-        fare: Number,
-        status: String,
-      },
+      Object
     ],
   },
   yearlyTravel: {

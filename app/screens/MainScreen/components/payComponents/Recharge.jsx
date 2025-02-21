@@ -19,16 +19,35 @@ import { useEffect, useState } from "react";
 const { height, width } = Dimensions.get("screen");
 import axios from "axios"
 import { BACKEND_URL } from "../../../../utilities/routes";
+import AsyncStorage from "@react-native-async-storage/async-storage"
 
 
-export default function Recharge({ navigation, data , setData}) {
+export default function Recharge({ navigation, data , setData , setPaymentResponse}) {
     const [amount, setAmount] = useState(0);
+    
 
-    const handleRecharge = async() => {
-        try{
-            axios.post()
+    const handleRecharge = async () => {
+        try {
+            if(amount.length === 0) return
+            const token = await AsyncStorage.getItem("token");
+            const response = await axios.post(`${BACKEND_URL}/api/user/recharge`, 
+                { amount },
+                {
+                    headers: { Authorization: `Bearer ${token}` }, 
+                }
+            );
+    
+            console.log("Recharge successful:", response.data); 
+            setData(response.data.user)
+            setPaymentResponse(true)
+            navigation.navigate("payment-response")
+        } catch (err) {
+            console.error("Recharge failed:", err);
+            setPaymentResponse(false)
+            navigation.navigate("payment-response")
         }
-    }
+    };
+    
 
     return (
         <KeyboardAvoidingView

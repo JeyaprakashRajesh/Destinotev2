@@ -3,6 +3,16 @@
     "name": "app",
     "slug": "app",
     "version": "1.0.0",
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+          "recordAudioAndroid": true
+        }
+      ]
+    ],
     "android": {
       "package": "com.anonymous.app",
       "permissions": [

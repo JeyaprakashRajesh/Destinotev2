@@ -1,4 +1,7 @@
 const User = require("../models/UserModel.js");
+const Bus = require("../models/BusModel");
+const BusStop = require('../models/busStopModel');
+
 const {generateToken} = require("../config/jwt.js")
 const asyncHandler = require("express-async-handler");
 
@@ -80,10 +83,103 @@ async function getDetails(req, res) {
   }
 }
 
+async function Recharge(req, res) {
+  try {
+    console.log("Recharge initiated");
+
+    const amount = Number(req.body.amount); 
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ message: "Invalid amount" });
+    }
+
+    const phone = req.decoded_data.phone;
+    const user = await User.findOne({ phone: phone });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.balance = Number(user.balance) + amount;
+
+    // Add transaction history
+    user.transactionHistory.push({
+      balance: user.balance,
+      transactionAmount: amount,
+      operation: "credit",
+      date: new Date(),
+    });
+
+    await user.save();
+
+    console.log("User after recharge:", user);
+
+    res.status(200).json({ message: "Amount recharged successfully", user : user });
+  } catch (err) {
+    console.error("Recharge error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+async function QrCode(req, res) {
+  try {
+    const phone = req.decoded_data.phone;
+    
+    const data = req.body.data || req.body;  
+    
+    if (data.payload.vechicle) {
+      data.payload.vehicle = data.payload.vechicle;
+      delete data.payload.vechicle;
+    }
+    const user = await User.findOne({ phone: phone });
+    const bus = await Bus.findOne({ VehicleNo: data.payload.vehicle });
+    const fromStop = await BusStop.findOne({ stopNo: data.payload.from });
+    const toStop = await BusStop.findOne({ stopNo: data.payload.to });
+    console.log("Data:", data);
+    console.log("User:", user);
+    console.log("Bus:", bus);
+    console.log("From Stop:", fromStop);
+    console.log("To Stop:", toStop);
+
+
+    if (!user || !bus || !fromStop || !toStop) {
+      return res.status(404).json({ message: "Unable to Fetch Data" });
+    }
+
+    if (user.balance < data.payload.amount) {
+      return res.status(400).json({ message: "Insufficient balance" });
+    }
+    user.balance -= data.payload.amount;
+
+    user.travelHistory.push(data.payload);
+    user.transactionHistory.push({
+      balance: user.balance,
+      transactionAmount: data.payload.amount,
+      operation: "debit",
+      date: new Date(),
+    });
+
+    await user.save();
+    res.status(200).json({
+      message: "Amount deducted successfully",
+      user: user,
+      bus: bus,
+      fromStop: fromStop,
+      toStop: toStop,
+    });
+  } catch (err) {
+    console.error("Recharge error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+
+
 
 
 module.exports = {
   Login,
   Phone,
-  getDetails
+  getDetails,
+  Recharge,
+  QrCode
 };

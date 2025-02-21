@@ -12,19 +12,18 @@ import {
   secondaryAcent,
 } from "../../../../utilities/color";
 import { useState, useEffect } from "react";
-import axios from "axios"
 const { height, width } = Dimensions.get("screen");
-import AsyncStorage from "@react-native-async-storage/async-storage"
-import { BACKEND_URL } from "../../../../utilities/routes";
 
 import { Alert } from "react-native";
 
 
 
 
-export default function Pay({navigation , data , setData}) {
+export default function Pay({ navigation, data, setData }) {
   const [balance, setBalance] = useState(null)
   const [nfc, setNfc] = useState(false);
+  const [monthlyOutflow, setMonthlyOutflow] = useState(0);
+
 
 
   // useEffect(() => {
@@ -41,9 +40,45 @@ export default function Pay({navigation , data , setData}) {
 
   useEffect(() => {
     if (data) {
-      setBalance(data.balance);
+      setBalance(data.balance || 0);
+      if (data.transactionHistory) {
+        calculateMonthlyOutflow(data.transactionHistory);
+      }
     }
   }, [data]);
+
+  const calculateMonthlyOutflow = (transactions) => {
+    if (!transactions || transactions.length === 0) {
+      setMonthlyOutflow(0);
+      return;
+    }
+
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    let debitTotal = 0;
+    let creditTotal = 0;
+
+    transactions.forEach((transaction) => {
+      if (!transaction || !transaction.date) return;
+
+      const transactionDate = new Date(transaction.date);
+      const transactionMonth = transactionDate.getMonth();
+      const transactionYear = transactionDate.getFullYear();
+
+      if (transactionMonth === currentMonth && transactionYear === currentYear) {
+        if (transaction.operation === "debit") {
+          debitTotal += transaction.transactionAmount || 0;
+        } else if (transaction.operation === "credit") {
+          creditTotal += transaction.transactionAmount || 0;
+        }
+      }
+    });
+
+    setMonthlyOutflow(creditTotal - debitTotal );
+  };
+
 
   const toggleNFC = async () => {
     const isEnabled = await NfcManager.isEnabled();
@@ -130,7 +165,7 @@ export default function Pay({navigation , data , setData}) {
                 ]}
               />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.walletChildElement}>
+            <TouchableOpacity style={styles.walletChildElement} onPress={() => navigation.navigate("qr")}>
               <Image
                 source={require("../../../../assets/pictures/qr-code.png")}
                 style={[styles.walletChildRightBottomElementImage]}
@@ -151,8 +186,9 @@ export default function Pay({navigation , data , setData}) {
           </View>
           <View style={styles.bottomMonthySpendingContentContainer}>
             <Text style={styles.bottomMonthySpendingContentText}>
-              Rs. {1234}
+              Rs. {monthlyOutflow.toFixed(2)}
             </Text>
+
           </View>
         </View>
         <View style={styles.bottomBottomContainer}>

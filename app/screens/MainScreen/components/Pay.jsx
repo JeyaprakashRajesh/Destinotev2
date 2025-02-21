@@ -6,11 +6,14 @@ import { BACKEND_URL } from "../../../utilities/routes";
 import Pay from "./payComponents/Pay";
 import TransactionHistory from "./payComponents/TransactionHistory";
 import Recharge from "./payComponents/Recharge";
+import PaymentMessage from "./payComponents/paymentMessage";
+import QR from "./payComponents/QR";
 
 const Stack = createNativeStackNavigator();
 
 export default function Home() {
   const [data, setData] = useState(null);
+  const [paymentResponse , setPaymentResponse] = useState(true)
 
   useEffect(() => {
     (async () => {
@@ -30,9 +33,11 @@ export default function Home() {
           }
         } catch (error) {
           console.error("Error fetching user details:", error);
+          await AsyncStorage.removeItem("token");
         }
       } else {
         console.log("Token not found");
+        await AsyncStorage.removeItem("token");
       }
     })();
   }, []);
@@ -51,7 +56,13 @@ export default function Home() {
         {(props) => <TransactionHistory {...props} data={data} setData={setData} />}
       </Stack.Screen>
       <Stack.Screen name="recharge">
-        {(props) => <Recharge {...props} data={data} setData={setData} />}
+        {(props) => <Recharge {...props} data={data} setData={setData} setPaymentResponse={setPaymentResponse} />}
+      </Stack.Screen>
+      <Stack.Screen name="payment-response">
+        {(props) => <PaymentMessage {...props} data={data} paymentResponse={paymentResponse} />}
+      </Stack.Screen>
+      <Stack.Screen name="qr">
+        {(props) => <QR {...props} data={data} setData={setData} />}
       </Stack.Screen>
     </Stack.Navigator>
   );

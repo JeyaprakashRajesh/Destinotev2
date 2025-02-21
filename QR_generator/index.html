@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        textarea {
+            width: 80%;
+            height: 120px;
+            margin-bottom: 10px;
+        }
+        #qrcode {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h2>QR Code Generator from JSON</h2>
+    <textarea id="jsonInput">
+{
+    "name": "Destinote",
+    "payload": {
+        "from": "S000011",
+        "to": "S000005",
+        "amount": 15,
+        "vechicle": "TN38AA1234"
+    }
+}
+    </textarea>
+    <br>
+    <button onclick="generateQRCode()">Generate QR Code</button>
+    <div id="qrcode"></div>
+
+    <script>
+        function generateQRCode() {
+            let jsonInput = document.getElementById("jsonInput").value.trim();
+            try {
+                let jsonObject = JSON.parse(jsonInput); // Validate JSON
+                let jsonString = JSON.stringify(jsonObject);
+                document.getElementById("qrcode").innerHTML = ""; // Clear previous QR code
+                new QRCode(document.getElementById("qrcode"), jsonString);
+            } catch (e) {
+                alert("Invalid JSON format. Please enter valid JSON.");
+            }
+        }
+    </script>
+</body>
+</html>
