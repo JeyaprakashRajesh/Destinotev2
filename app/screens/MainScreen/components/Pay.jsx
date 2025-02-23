@@ -8,6 +8,8 @@ import TransactionHistory from "./payComponents/TransactionHistory";
 import Recharge from "./payComponents/Recharge";
 import PaymentMessage from "./payComponents/paymentMessage";
 import QR from "./payComponents/QR";
+import TravelHistory from "./payComponents/TravelHistory";
+import Beneficiaries from "./payComponents/Beneficieries";
 
 const Stack = createNativeStackNavigator();
 
@@ -63,6 +65,12 @@ export default function Home() {
       </Stack.Screen>
       <Stack.Screen name="qr">
         {(props) => <QR {...props} data={data} setData={setData} />}
+      </Stack.Screen>
+      <Stack.Screen name="travel-history">
+        {(props) => <TravelHistory {...props} data={data} setData={setData} />}
+      </Stack.Screen>
+      <Stack.Screen name="beneficiaries">
+        {(props) => <Beneficiaries {...props} data={data} setData={setData} />}
       </Stack.Screen>
     </Stack.Navigator>
   );

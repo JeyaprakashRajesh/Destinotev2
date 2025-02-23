@@ -192,7 +192,7 @@ export default function Pay({ navigation, data, setData }) {
           </View>
         </View>
         <View style={styles.bottomBottomContainer}>
-          <TouchableOpacity style={styles.bottomBottomInnerContainer}>
+          <TouchableOpacity style={styles.bottomBottomInnerContainer} onPress={() => navigation.navigate("travel-history")}>
             <View style={styles.bottomBottomInnerContainerContent}>
               <Image
                 style={styles.bottomBottomInnerContainerContentImage}
@@ -209,7 +209,7 @@ export default function Pay({ navigation, data, setData }) {
               </Text>
             </View>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.bottomBottomInnerContainer}>
+          <TouchableOpacity style={styles.bottomBottomInnerContainer} onPress={() => navigation.navigate("beneficiaries")}>
             <View style={styles.bottomBottomInnerContainerContent}>
               <Image
                 style={styles.bottomBottomInnerContainerContentImage}

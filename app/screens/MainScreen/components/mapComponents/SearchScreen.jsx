@@ -166,12 +166,12 @@ const styles = StyleSheet.create({
     justifyContent: "center"
   },
   back: { height: "100%", aspectRatio: 1, alignItems: "center", justifyContent: "center", marginRight: 10 },
-  input: { fontFamily: "Montserrat-SemiBold", fontSize: 15, flex: 1 },
+  input: { fontFamily: "JosefinSans-SemiBold", fontSize: 15, flex: 1 , },
   backImg: { height: "70%", aspectRatio: 1, tintColor: secondary },
   searchButton: { height: "90%", aspectRatio: 1, borderRadius: 100000, backgroundColor: secondary, alignItems: "center", justifyContent: "center" },
   searchImg: { height: "60%", aspectRatio: 1, tintColor: thirtiary },
   resultText: { fontSize: 16, color: "#333" },
-  highlight: { backgroundColor: primary, color: "white", fontWeight: "bold" },
+  highlight: { backgroundColor: primary, color: "white", fontWeight: "bold", fontFamily : "Montserrat-Medium" },
 
   emptyContainer: { flex: 1, alignItems: "center", justifyContent: "center" },
   emptySearchLogo: { tintColor: "gray", width: width * 0.4, height: width * 0.4, opacity: 0.2 },

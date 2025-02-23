@@ -150,7 +150,7 @@ async function QrCode(req, res) {
     }
     user.balance -= data.payload.amount;
 
-    user.travelHistory.push(data.payload);
+    user.travelHistory.push({ ...data.payload , date: new Date() });
     user.transactionHistory.push({
       balance: user.balance,
       transactionAmount: data.payload.amount,
