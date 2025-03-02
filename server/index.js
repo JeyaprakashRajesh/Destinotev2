@@ -60,6 +60,8 @@ io.on("connection", (socket) => {
   console.log("New WebSocket connection");
 
   socket.on("getNearbyStops", async (userLocation) => {
+    console.log("recieve")
+    console.log(userLocation)
     const { latitude, longitude } = userLocation;
 
     const nearbyStops = await getNearbyStops(latitude, longitude);

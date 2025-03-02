@@ -28,19 +28,8 @@ input[type="number"] {
 @theme {
     --color-primary:#00ADB5;
     --color-secondary:#222831;
-    --color-secondaryAcent:#393E46;
-    --color-thirtiary:#EEEEEE;
+    --color-tertiary:#393E46;
+    --color-quaternary:#EEEEEE;
 
     --font-poppins : 'Poppins', sans-serif;
-}
-@layer utilities {
-  /* Hide scrollbar for Chrome, Safari and Opera */
-  .no-scrollbar::-webkit-scrollbar {
-      display: none;
-  }
- /* Hide scrollbar for IE, Edge and Firefox */
-  .no-scrollbar {
-      -ms-overflow-style: none;  /* IE and Edge */
-      scrollbar-width: none;  /* Firefox */
-}
 }
