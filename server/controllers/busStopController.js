@@ -46,8 +46,7 @@ const getNearbyStops = async (latitude, longitude) => {
       type: "stop",
       coordinates: {
         $near: {
-          $geometry: { type: "Point", coordinates: [longitude, latitude] },
-          $maxDistance: 20000, // 6 km radius
+          $geometry: { type: "Point", coordinates: [longitude, latitude] }
         },
       },
     });

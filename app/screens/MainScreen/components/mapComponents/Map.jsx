@@ -77,7 +77,7 @@ export default function Map({setDirection}) {
   }, []);
 
   useEffect(() => {
-    socket.current = io(SOCKET_URL);
+    socket.current = io(SOCKET_URL);  
     socket.current.on("nearbyStops", (stops) => {
       setNearbyStops(stops);
     });

@@ -7,6 +7,7 @@ import { TbLocationFilled } from "react-icons/tb";
 import { FaLayerGroup } from "react-icons/fa";
 import io from "socket.io-client";
 import Search from "./mapComponents/Search";
+import RenderStopMarkers from "./mapComponents/renderStopMarkers";
 
 export default function Home() {
   const containerStyle = {
@@ -21,8 +22,9 @@ export default function Home() {
   const [nearbyStops, setNearbyStops] = useState([]);
   const [bus, setBus] = useState([]);
   const [selectedMarker, setSelectedMarker] = useState(null);
-  const [searchSelected, setSearrchSelected] = useState(false);
+  const [searchSelected, setSearchSelected] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [markerSelected , setMarkerSelected] = useState(false);
 
   const mapRef = useRef(null);
   const socket = useRef(null);
@@ -71,6 +73,10 @@ export default function Home() {
       };
     }
   }, [location]);
+  useEffect(() => {
+    console.log(selectedMarker)
+  },[selectedMarker])
+
 
   const handlePinClick = () => {
     setPinLocation((prev) => {
@@ -99,13 +105,24 @@ export default function Home() {
               center={location}
               zoom={12}
               onLoad={(map) => (mapRef.current = map)}
-              onDragEnd={handleDrag}
+              onDrag={handleDrag}
               options={{
                 fullscreenControl: false,
                 mapTypeId: isSatellite ? "satellite" : "roadmap",
               }}
+              onClick={()=> {
+                setSearchSelected(false);
+                setSelectedMarker(null);
+                setMarkerSelected(false);
+              }}
             >
               <Marker position={location} icon={mapLocation} />
+              <RenderStopMarkers 
+                nearbyStops={nearbyStops}
+                setSelectedStop={setSelectedMarker}
+                setMarkerSelected={setMarkerSelected}
+                setSearchSelected={setSearchSelected}
+              />
             </GoogleMap>
           )}
         </LoadScript>
@@ -135,10 +152,12 @@ export default function Home() {
       <div className="w-[500px] bg-secondary justify-center p-4 overflow-y-scroll no-scrollbar">
         <Search
           nearbyStops={nearbyStops}
-          setSearrchSelected={setSearrchSelected}
+          setSearchSelected={setSearchSelected}
           setSelectedMarker={setSelectedMarker}
+          selectedMarker={selectedMarker}
           isSearching={isSearching}
           setIsSearching={setIsSearching}
+          setMarkerSelected={setMarkerSelected}
         />
       </div>
     </div>
