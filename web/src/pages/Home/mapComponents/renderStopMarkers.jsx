@@ -3,7 +3,7 @@ import { Marker } from "@react-google-maps/api";
 import MarkerRed from "../../../assets/farMarkerRed.png";
 import MarkerBlue from "../../../assets/farMarkerBlue.png";
 
-const RenderStopMarkers = ({ nearbyStops, setSelectedStop, setMarkerSelected, setSearchSelected }) => {
+const RenderStopMarkers = ({ nearbyStops, setSelectedStop, setMarkerSelected, setSearchSelected, setSelectedBus }) => {
   return nearbyStops.map((stop, index) => {
     if (stop.type !== "bus") {
       return (
@@ -17,6 +17,7 @@ const RenderStopMarkers = ({ nearbyStops, setSelectedStop, setMarkerSelected, se
             setSearchSelected(false);
             setSelectedStop(stop);
             setMarkerSelected(true);
+            setSelectedBus(null)
           }}
           icon={{
             url: stop.type === "terminal" ? MarkerBlue : MarkerRed,

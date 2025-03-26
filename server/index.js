@@ -31,30 +31,6 @@ app.use("/api/buses", busRoutes);
 app.use("/api/user", UserRoutes)
 connectDB();
 
-const sendBusDataToClient = async (socket) => {
-  try {
-    const buses = await Bus.find();
-
-    const busesWithRouteInfo = await Promise.all(buses.map(async (bus) => {
-      const route = await Route.findById(bus.RouteNo[bus.currentRouteNo]); 
-      return {
-        VehicleNo: bus.VehicleNo,
-        BusNo: bus.BusNo,
-        busCoordinates: bus.busCoordinates,
-        busStatus: bus.busStatus,
-        currentRoute: route ? route.routeName : "Unknown",
-        currentRouteNo: bus.currentRouteNo,
-        busType: bus.busType,
-        busDistrict: bus.busDistrict,
-      };
-    }));
-
-    socket.emit("busLocationUpdate", busesWithRouteInfo);
-
-  } catch (err) {
-    console.error("Error fetching bus data:", err);
-  }
-};
 
 io.on("connection", (socket) => {
   console.log("New WebSocket connection");
@@ -88,6 +64,7 @@ io.on("connection", (socket) => {
 
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running on port ${PORT}`);
 });
+

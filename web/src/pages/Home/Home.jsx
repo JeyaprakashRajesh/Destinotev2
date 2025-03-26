@@ -8,6 +8,7 @@ import { FaLayerGroup } from "react-icons/fa";
 import io from "socket.io-client";
 import Search from "./mapComponents/Search";
 import RenderStopMarkers from "./mapComponents/renderStopMarkers";
+import RenderBusMarkers from "./mapComponents/renderBusMarkers";
 
 export default function Home() {
   const containerStyle = {
@@ -25,6 +26,8 @@ export default function Home() {
   const [searchSelected, setSearchSelected] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [markerSelected , setMarkerSelected] = useState(false);
+  const [selectedBus, setSelectedBus] = useState(null)
+  const [fetched , setFetched] = useState(false)
 
   const mapRef = useRef(null);
   const socket = useRef(null);
@@ -51,6 +54,7 @@ export default function Home() {
       console.error("Geolocation is not supported by this browser.");
     }
   }, [pinLocation, location]);
+  
 
   useEffect(() => {
     socket.current = io(SOCKET_URL);
@@ -119,6 +123,14 @@ export default function Home() {
               <Marker position={location} icon={mapLocation} />
               <RenderStopMarkers 
                 nearbyStops={nearbyStops}
+                setSelectedStop={setSelectedMarker}
+                setMarkerSelected={setMarkerSelected}
+                setSearchSelected={setSearchSelected}
+                setSelectedBus={setSelectedBus}
+              />
+              <RenderBusMarkers 
+                setSelectedBus={setSelectedBus}
+                bus={bus}
                 setSelectedStop={setSelectedMarker}
                 setMarkerSelected={setMarkerSelected}
                 setSearchSelected={setSearchSelected}
