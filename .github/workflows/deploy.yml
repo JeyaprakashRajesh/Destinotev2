@@ -1,0 +1,42 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main  # Runs only when code is pushed to the main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set Up SSH
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > private_key.pem
+          chmod 600 private_key.pem
+
+      - name: Deploy to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ec2-user@65.0.107.236 << 'EOF'
+            cd /home/ec2-user/Destinotev2
+
+            # Pull latest changes
+            git pull origin main
+
+            # Update backend
+            cd server
+            npm install
+            pm2 restart server
+
+            # Update frontend
+            cd ../web
+            npm install
+            npm run build
+            sudo cp -r dist/* /usr/share/nginx/html/
+
+            # Restart Nginx
+            sudo systemctl restart nginx
+          EOF
