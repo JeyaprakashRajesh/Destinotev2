@@ -21,6 +21,7 @@ jobs:
       - name: Deploy to EC2
         run: |
           ssh -o StrictHostKeyChecking=no -i private_key.pem ec2-user@65.0.107.236 << 'EOF'
+            sudo su
             cd /home/ec2-user/Destinotev2
 
             # Pull latest changes
