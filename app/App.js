@@ -7,9 +7,10 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import AuthScreen from './screens/AuthScreen/AuthScreen';
 import MainScreen from './screens/MainScreen/MainScreen';
+import useCustomFonts from './utilities/loadFonts';
 export default function App() {
   const [screen, setScreen] = useState(null);
-
+  useCustomFonts()
   useEffect(() => {
     const checkToken = async () => {
       const token = await AsyncStorage.getItem("token");

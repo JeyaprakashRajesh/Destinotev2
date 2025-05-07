@@ -81,6 +81,10 @@ export default function Home() {
     console.log(selectedMarker)
   },[selectedMarker])
 
+  useEffect(() => {
+    console.log(selectedBus)
+  },[selectedBus])
+
 
   const handlePinClick = () => {
     setPinLocation((prev) => {
@@ -104,22 +108,79 @@ export default function Home() {
         <LoadScript googleMapsApiKey={GOOGLE_API} className="rounded-lg">
           {location && (
             <GoogleMap
-              className="z-1"
-              mapContainerStyle={containerStyle}
-              center={location}
-              zoom={12}
-              onLoad={(map) => (mapRef.current = map)}
-              onDrag={handleDrag}
-              options={{
-                fullscreenControl: false,
-                mapTypeId: isSatellite ? "satellite" : "roadmap",
-              }}
-              onClick={()=> {
-                setSearchSelected(false);
-                setSelectedMarker(null);
-                setMarkerSelected(false);
-              }}
-            >
+            className="z-1"
+            mapContainerStyle={containerStyle}
+            center={location}
+            zoom={12}
+            onLoad={(map) => (mapRef.current = map)}
+            onDrag={handleDrag}
+            options={{
+              fullscreenControl: false,
+              mapTypeId: isSatellite ? "satellite" : "roadmap",
+              styles: [
+              {
+                  featureType: "poi",
+                  elementType: "labels",
+                  stylers: [
+                    {
+                      visibility: "off",
+                    },
+                  ],
+                },
+                {
+                  featureType: "poi.business",
+                  stylers: [
+                    {
+                      visibility: "off",
+                    },
+                  ],
+                },
+                {
+                  featureType: "poi.park",
+                  elementType: "labels.text",
+                  stylers: [
+                    {
+                      visibility: "off",
+                    },
+                  ],
+                },
+                {
+                  featureType: "poi.park",
+                  elementType: "labels.text.fill",
+                  stylers: [
+                    {
+                      color: "#bdbdbd",
+                    },
+                  ],
+                },
+                {
+                  featureType: "road",
+                  elementType: "labels.icon",
+                  stylers: [
+                    {
+                      visibility: "off",
+                    },
+                  ],
+                },
+                {
+                  featureType: "road.local",
+                  elementType: "labels.icon",
+                  stylers:
+                    [
+                      {
+                        visibility: "off",
+                      },
+                    ],
+                  },
+              ],
+            }}
+            onClick={() => {
+              setSearchSelected(false);
+              setSelectedMarker(null);
+              setMarkerSelected(false);
+            }}
+          >
+          
               <Marker position={location} icon={mapLocation} />
               <RenderStopMarkers 
                 nearbyStops={nearbyStops}
@@ -171,6 +232,7 @@ export default function Home() {
           setIsSearching={setIsSearching}
           setMarkerSelected={setMarkerSelected}
         />
+        
       </div>
     </div>
   );

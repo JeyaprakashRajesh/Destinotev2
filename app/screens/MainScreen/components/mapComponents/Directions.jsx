@@ -203,8 +203,8 @@ export default function Directions({ navigation, direction, setDirection }) {
           <View style={styles.noContainer}>
             <View style={styles.noLeft}>
               <View style={styles.noLeftDetails}>
-                <Text style={styles.noLeftETA}>10min</Text>
-                <Text style={styles.noLeftDistance}>(5km)</Text>
+                <Text style={styles.noLeftETA}>1hr</Text>
+                <Text style={styles.noLeftDistance}>(40km)</Text>
               </View>
               <TouchableOpacity style={styles.noStartButton} onPress={handleStartNavigation}>
                 <Image
