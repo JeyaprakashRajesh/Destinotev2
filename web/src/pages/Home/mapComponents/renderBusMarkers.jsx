@@ -26,13 +26,10 @@ const RenderBusMarkers = ({ bus, setSelectedStop, setMarkerSelected, setSearchSe
   };
 
   return bus.map((busItem) => {
-    console.log("RenderBusMarkers", busItem);
-    
     const currentCoordinates = {
       lat: busItem.busCoordinates[1], 
       lng: busItem.busCoordinates[0],
     };
-    console.log("currentCoordinates", currentCoordinates);
 
     const rotation = calculateBearing(busItem.previousCoordinates, busItem.busCoordinates);
 

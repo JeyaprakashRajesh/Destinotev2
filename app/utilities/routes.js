@@ -1,2 +1,2 @@
-export const BACKEND_URL = "http://10.57.1.42:5000";
-export const SOCKET_URL = "ws://10.57.1.42:5000";
+export const BACKEND_URL = "http://192.168.192.50:5000";
+export const SOCKET_URL = "ws://192.168.192.50:5000";

@@ -11,6 +11,7 @@ export default function Search({
   isSearching,
   setIsSearching,
   setMarkerSelected,
+  setSelectedBus
 }) {
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -53,6 +54,8 @@ export default function Search({
                   setMarkerSelected(false)
                   setSearchSelected(true);
                   setSelectedMarker(stop);
+                  setSelectedBus(null);
+                  setSearch("");
                 }}
               >
                 <div className="h-14 w-14 rounded-full bg-secondaryAcent flex items-center justify-center">

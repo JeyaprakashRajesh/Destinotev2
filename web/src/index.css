@@ -10,6 +10,8 @@ body {
     margin: 0;
     font-family: var(--font-poppins);
     color: var(--color-secondary);
+    --red : #b22222;
+    --blue : #034694;
 }
 
 /* For Chrome, Safari, Edge, Opera */
@@ -30,6 +32,8 @@ input[type="number"] {
     --color-secondary:#222831;
     --color-secondaryAcent:#393E46;
     --color-thirtiary:#EEEEEE;
+    --color-red: #b22222;
+    --color-blue: #034694;
 
     --font-poppins : 'Poppins', sans-serif;
 }
